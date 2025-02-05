@@ -4,7 +4,7 @@ namespace Domain.Currencies
 {
     public record CurrencyCode
     {
-        private static Error InvalidCodeError = new Error(ErrorCode.BadInput, "The currency code is invalid");
+        internal static Error InvalidCodeError = new Error(ErrorCode.BadInput, "The currency code is invalid");
 
         public static readonly CurrencyCode Usd = new("USD", "United States Dollar");
         public static readonly CurrencyCode Eur = new("EUR", "Euro");
