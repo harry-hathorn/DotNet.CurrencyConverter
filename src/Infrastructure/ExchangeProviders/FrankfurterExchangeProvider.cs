@@ -9,7 +9,7 @@ namespace Infrastructure.ExchangeProviders
         {
             _httpClient = httpClient;
         }
-        public ExchangeProviderType ProviderType { get; init; } = ExchangeProviderType.Frankfurter;
+        public ExchangeProviderType ProviderType { get; } = ExchangeProviderType.Frankfurter;
 
         public async Task GetLatestExchangeRatesAsync()
         {

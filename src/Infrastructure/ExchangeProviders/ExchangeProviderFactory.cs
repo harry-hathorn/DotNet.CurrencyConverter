@@ -1,8 +1,8 @@
 ﻿using Domain.Currencies;
 
-namespace UnitTests.Infrastructure.ExchangeProviderFactoryTests
+namespace Infrastructure.ExchangeProviders
 {
-    internal class ExchangeProviderFactory
+    public class ExchangeProviderFactory
     {
         private readonly IEnumerable<IExchangeProvider> _exchangeProviders;
         public ExchangeProviderFactory(IEnumerable<IExchangeProvider> exchangeProviders)

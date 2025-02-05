@@ -19,6 +19,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
             var httpClient = new HttpClient(_mockHttpMessageHandler.Object);
             _exchangeProvider = new FrankfurterExchangeProvider(httpClient);
         }
+
         [Fact]
         public async Task CallApiOnce()
         {
