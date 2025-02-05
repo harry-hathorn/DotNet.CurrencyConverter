@@ -1,4 +1,6 @@
-﻿using Domain.Currencies;
+﻿using Domain.Common;
+using Domain.Currencies;
+using FluentAssertions;
 
 namespace UnitTests.Domain.CurrencySnapshots
 {
@@ -21,6 +23,20 @@ namespace UnitTests.Domain.CurrencySnapshots
 
             var converted = currencySnapShot.Convert(new Money((decimal)amount), CurrencyCode.FromCode(code).Value).Value.Value;
             Assert.Equal((decimal)expected, converted, 4);
+        }
+
+        [Theory]
+        [InlineData("TRY")]
+        [InlineData("PLN")]
+        [InlineData("THB")]
+        [InlineData("MXN")]
+        public void FailWithIlligalConvesions(string code)
+        {
+            var currencySnapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), []).Value;
+            var result = currencySnapShot.Convert(new Money(1), CurrencyCode.FromCode(code).Value);
+            result.IsFailure.Should().BeTrue(); 
+            result.Error.Code.Should().Be(ErrorCode.BadInput);  
+            result.Error.Message.Should().Be("The requested currency code is not allowed");
         }
 
     }
