@@ -1,8 +1,8 @@
-﻿
+﻿using Domain.Providers;
 
-namespace UnitTests.Infrastructure.ExchangeProviders
+namespace Infrastructure.Providers
 {
-    internal class FrankfurterExchangeProvider
+    public class FrankfurterExchangeProvider : IExchangeProvider
     {
         private readonly HttpClient _httpClient;
 
@@ -10,8 +10,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
         {
             _httpClient = httpClient;
         }
-
-        internal async Task GetLatestExchangeRatesAsync()
+        public async Task GetLatestExchangeRatesAsync()
         {
             await _httpClient.GetAsync("https://api.frankfurter.dev/v1/latest");
         }

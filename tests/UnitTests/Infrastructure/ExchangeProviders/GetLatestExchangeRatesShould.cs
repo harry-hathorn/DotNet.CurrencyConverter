@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Infrastructure.Providers;
+using Moq;
 using Moq.Protected;
 
 namespace UnitTests.Infrastructure.ExchangeProviders
@@ -27,7 +28,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
                 Times.Exactly(1),
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.Method == HttpMethod.Get
-                    && req.RequestUri == expectedUri // to this uri
+                    && req.RequestUri == expectedUri
                 ),
                 ItExpr.IsAny<CancellationToken>());
         }
