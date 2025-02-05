@@ -19,11 +19,11 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
 
         public ExchangeProviderType ProviderType { get; } = ExchangeProviderType.Frankfurter;
 
-        public async Task<Result<CurrencySnapshot>> GetLatestExchangeRatesAsync()
+        public async Task<Result<CurrencySnapshot>> GetLatestExchangeRatesAsync(CurrencyCode currencyCode)
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>("https://api.frankfurter.dev/v1/latest");
+                var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>($"https://api.frankfurter.dev/v1/latest?base={currencyCode.Value}");
 
                 List<(string Code, decimal Amount)> expectedRates = response.Rates.GetType()
                   .GetProperties(BindingFlags.Public | BindingFlags.Instance)

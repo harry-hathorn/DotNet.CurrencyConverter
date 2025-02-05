@@ -5,6 +5,6 @@ namespace Domain.Currencies
     public interface IExchangeProvider
     {
         public ExchangeProviderType ProviderType { get; }
-        public Task<Result<CurrencySnapshot>> GetLatestExchangeRatesAsync();
+        public Task<Result<CurrencySnapshot>> GetLatestExchangeRatesAsync(CurrencyCode currencyCode);
     }
 }
