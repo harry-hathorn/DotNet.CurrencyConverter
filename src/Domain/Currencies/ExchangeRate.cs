@@ -1,4 +1,4 @@
 ﻿namespace Domain.Currencies
 {
-    public record ExchangeRate(CurrencyCode Code, double Amount);
+    public record ExchangeRate(CurrencyCode Code, Money Amount);
 }

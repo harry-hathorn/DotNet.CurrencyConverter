@@ -4,6 +4,7 @@ namespace Domain.Currencies
 {
     public record CurrencySnapshot
     {
+        private static Error AmountCannotBeLessThanZeroError = new Error(ErrorCode.BadInput, "The amount cannot be less than zero");
         private CurrencySnapshot(CurrencyCode code, DateTime dateCaptured, List<ExchangeRate> exchanges)
         {
             Code = code;
@@ -17,7 +18,7 @@ namespace Domain.Currencies
         public static Result<CurrencySnapshot> Create(
             string code,
             DateTime dateCaptured,
-            List<(string Code, double Amount)> exchangeRates)
+            List<(string Code, decimal Amount)> exchangeRates)
         {
             var currencyCodeResult = CurrencyCode.FromCode(code);
             if (currencyCodeResult.IsFailure)
@@ -25,6 +26,10 @@ namespace Domain.Currencies
                 return Result.Failure<CurrencySnapshot>(currencyCodeResult.Error);
             }
 
+            if (exchangeRates.Any(x => x.Amount < 0))
+            {
+                return Result.Failure<CurrencySnapshot>(AmountCannotBeLessThanZeroError);
+            }
             var exchangeResults = exchangeRates.Select(x => new
             {
                 Result = CurrencyCode.FromCode(x.Code),
@@ -35,7 +40,7 @@ namespace Domain.Currencies
             {
                 return Result.Failure<CurrencySnapshot>(CurrencyCode.InvalidCodeError);
             }
-            var exchanges = exchangeResults.Select(x => new ExchangeRate(x.Result.Value, x.Original.Amount)).ToList();
+            var exchanges = exchangeResults.Select(x => new ExchangeRate(x.Result.Value, new Money(x.Original.Amount))).ToList();
             return new CurrencySnapshot(currencyCodeResult.Value, dateCaptured, exchanges);
         }
     }
