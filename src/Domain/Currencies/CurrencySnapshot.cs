@@ -15,7 +15,7 @@ namespace Domain.Currencies
             CurrencyCode.Mxn
          };
 
-        private CurrencySnapshot(CurrencyCode code, DateTime dateCaptured, List<ExchangeRate> exchanges)
+        private CurrencySnapshot(CurrencyCode code, DateTime dateCaptured, List<Money> exchanges)
         {
             Code = code;
             DateCaptured = dateCaptured;
@@ -23,7 +23,7 @@ namespace Domain.Currencies
         }
         public CurrencyCode Code { get; init; }
         public DateTime DateCaptured { get; init; }
-        public List<ExchangeRate> ExchangeRates { get; set; }
+        public List<Money> ExchangeRates { get; set; }
 
         public static Result<CurrencySnapshot> Create(
             string code,
@@ -50,11 +50,11 @@ namespace Domain.Currencies
             {
                 return Result.Failure<CurrencySnapshot>(CurrencyCode.InvalidCodeError);
             }
-            var exchanges = exchangeResults.Select(x => new ExchangeRate(x.Result.Value, new Money(x.Original.Amount))).ToList();
+            var exchanges = exchangeResults.Select(x => new Money(x.Result.Value, x.Original.Amount)).ToList();
             return new CurrencySnapshot(currencyCodeResult.Value, dateCaptured, exchanges);
         }
 
-        public Result<Money> Convert(Money amount, CurrencyCode currencyCode)
+        public Result<Money> Convert(decimal amount, CurrencyCode currencyCode)
         {
             if (IllegalConversions.Contains(currencyCode))
             {
@@ -65,7 +65,7 @@ namespace Domain.Currencies
             {
                 return Result.Failure<Money>(Error.NotFound);
             }
-            return new Money(exchangeRate.Amount.Value * amount.Value);
+            return new Money(currencyCode, exchangeRate.Amount * amount);
         }
     }
 }

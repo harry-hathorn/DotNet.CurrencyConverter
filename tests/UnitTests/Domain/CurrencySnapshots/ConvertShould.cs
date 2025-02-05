@@ -21,8 +21,8 @@ namespace UnitTests.Domain.CurrencySnapshots
             };
             var currencySnapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies).Value;
 
-            var converted = currencySnapShot.Convert(new Money((decimal)amount), CurrencyCode.FromCode(code).Value).Value.Value;
-            Assert.Equal((decimal)expected, converted, 4);
+            var converted = currencySnapShot.Convert((decimal)amount, CurrencyCode.FromCode(code).Value).Value;
+            Assert.Equal((decimal)expected, converted.Amount, 4);
         }
 
         [Theory]
@@ -33,7 +33,7 @@ namespace UnitTests.Domain.CurrencySnapshots
         public void FailWithIlligalConvesions(string code)
         {
             var currencySnapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), []).Value;
-            var result = currencySnapShot.Convert(new Money(1), CurrencyCode.FromCode(code).Value);
+            var result = currencySnapShot.Convert(1, CurrencyCode.FromCode(code).Value);
             result.IsFailure.Should().BeTrue(); 
             result.Error.Code.Should().Be(ErrorCode.BadInput);  
             result.Error.Message.Should().Be("The requested currency code is not allowed");
@@ -47,7 +47,7 @@ namespace UnitTests.Domain.CurrencySnapshots
                 ("BGN", 1.9558m),
             };
             var currencySnapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies).Value;
-            var converted = currencySnapShot.Convert(new Money(1), CurrencyCode.Gbp);
+            var converted = currencySnapShot.Convert(1, CurrencyCode.Gbp);
             converted.IsFailure.Should().BeTrue();
             converted.Error.Should().Be(Error.NotFound);
         }

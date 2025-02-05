@@ -1,4 +1,4 @@
 ﻿namespace Domain.Currencies
 {
-    public record Money(decimal Value);
+    public record Money(CurrencyCode Code, decimal Amount);
 }

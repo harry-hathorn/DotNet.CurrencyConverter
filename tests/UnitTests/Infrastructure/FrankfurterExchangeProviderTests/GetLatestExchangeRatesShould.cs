@@ -118,7 +118,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
             snapShot.Code.Value.Should().Be(frankurterResponse.Base);
             snapShot.DateCaptured.Should().Be(frankurterResponse.Date);
             snapShot.ExchangeRates.Should().OnlyContain(rate =>
-                expectedRates.Any(expected => expected.Code == rate.Code.Value && expected.Amount == rate.Amount.Value));
+                expectedRates.Any(expected => expected.Code == rate.Code.Value && expected.Amount == rate.Amount));
         }
 
         [Fact]

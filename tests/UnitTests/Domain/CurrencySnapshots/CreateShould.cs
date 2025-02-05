@@ -93,7 +93,7 @@ namespace UnitTests.Domain.Currencies
             currency.ExchangeRates
                 .Should()
                 .OnlyContain(rate => currencies.Any(expected => expected.Code == rate.Code.Value &&
-                                               expected.Amount == rate.Amount.Value));
+                                               expected.Amount == rate.Amount));
         }
     }
 }
