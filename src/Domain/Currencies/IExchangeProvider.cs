@@ -1,8 +1,10 @@
-﻿namespace Domain.Currencies
+﻿using Domain.Common;
+
+namespace Domain.Currencies
 {
     public interface IExchangeProvider
     {
         public ExchangeProviderType ProviderType { get; }
-        public Task GetLatestExchangeRatesAsync();
+        public Task<Result<CurrencySnapshot>> GetLatestExchangeRatesAsync();
     }
 }

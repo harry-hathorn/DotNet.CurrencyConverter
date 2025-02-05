@@ -9,7 +9,7 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
         [Fact]
         public void SetFrankFurturProviderType() {
 
-            var provider = new FrankfurterExchangeProvider(default);
+            var provider = new FrankfurterExchangeProvider(default, default);
             provider.ProviderType.Should().Be(ExchangeProviderType.Frankfurter);
         }
     }

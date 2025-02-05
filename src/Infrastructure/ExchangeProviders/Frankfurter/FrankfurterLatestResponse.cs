@@ -3,43 +3,43 @@
     internal class FrankfurterLatestResponse
     {
         public float Amount { get; set; }
-        public string _base { get; set; }
-        public string Date { get; set; }
+        public string Base { get; set; }
+        public DateTime Date { get; set; }
         public Rates Rates { get; set; }
     }
 
     internal class Rates
     {
-        public float AUD { get; set; }
-        public float BGN { get; set; }
-        public float BRL { get; set; }
-        public float CAD { get; set; }
-        public float CHF { get; set; }
-        public float CNY { get; set; }
-        public float CZK { get; set; }
-        public float DKK { get; set; }
-        public float GBP { get; set; }
-        public float HKD { get; set; }
-        public float HUF { get; set; }
-        public int IDR { get; set; }
-        public float ILS { get; set; }
-        public float INR { get; set; }
-        public float ISK { get; set; }
-        public float JPY { get; set; }
-        public float KRW { get; set; }
-        public float MXN { get; set; }
-        public float MYR { get; set; }
-        public float NOK { get; set; }
-        public float NZD { get; set; }
-        public float PHP { get; set; }
-        public float PLN { get; set; }
-        public float RON { get; set; }
-        public float SEK { get; set; }
-        public float SGD { get; set; }
-        public float THB { get; set; }
-        public float TRY { get; set; }
-        public float USD { get; set; }
-        public float ZAR { get; set; }
+        public decimal? AUD { get; set; }
+        public decimal? BGN { get; set; }
+        public decimal? BRL { get; set; }
+        public decimal? CAD { get; set; }
+        public decimal? CHF { get; set; }
+        public decimal? CNY { get; set; }
+        public decimal? CZK { get; set; }
+        public decimal? DKK { get; set; }
+        public decimal? GBP { get; set; }
+        public decimal? HKD { get; set; }
+        public decimal? HUF { get; set; }
+        public decimal? IDR { get; set; }
+        public decimal? ILS { get; set; }
+        public decimal? INR { get; set; }
+        public decimal? ISK { get; set; }
+        public decimal? JPY { get; set; }
+        public decimal? KRW { get; set; }
+        public decimal? MXN { get; set; }
+        public decimal? MYR { get; set; }
+        public decimal? NOK { get; set; }
+        public decimal? NZD { get; set; }
+        public decimal? PHP { get; set; }
+        public decimal? PLN { get; set; }
+        public decimal? RON { get; set; }
+        public decimal? SEK { get; set; }
+        public decimal? SGD { get; set; }
+        public decimal? THB { get; set; }
+        public decimal? TRY { get; set; }
+        public decimal? USD { get; set; }
+        public decimal? ZAR { get; set; }
     }
 
 }
