@@ -43,5 +43,11 @@ namespace Domain.Currencies
             var exchanges = exchangeResults.Select(x => new ExchangeRate(x.Result.Value, new Money(x.Original.Amount))).ToList();
             return new CurrencySnapshot(currencyCodeResult.Value, dateCaptured, exchanges);
         }
+
+        public Result<Money> Convert(Money amount, CurrencyCode currencyCode)
+        {
+            var exchangeRate = ExchangeRates.FirstOrDefault(x => x.Code == currencyCode);
+            return new Money(exchangeRate.Amount.Value * amount.Value);
+        }
     }
 }
