@@ -1,22 +1,25 @@
 ﻿using Domain.Common;
 
-namespace UnitTests.Domain.Currencies
+namespace Domain.Currencies
 {
     public record Currency
     {
-        private Currency(string code)
+        private Currency(string code, DateTime dateCaptured)
         {
             Code = code;
+            DateCaptured = dateCaptured;
         }
         private static Error InvalidCodeError = new Error(ErrorCode.BadInput, "The currency code is invalid");
         public string Code { get; init; }
-        public static Result<Currency> Create(string code)
+        public DateTime DateCaptured { get; init; }
+        public static Result<Currency> Create(string code,
+            DateTime dateCaptured)
         {
             if (code.Length > 3)
             {
                 return Result.Failure<Currency>(InvalidCodeError);
             }
-            return new Currency(code);
+            return new Currency(code, dateCaptured);
         }
     }
 }
