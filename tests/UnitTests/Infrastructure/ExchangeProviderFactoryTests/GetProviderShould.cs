@@ -1,5 +1,6 @@
 ﻿using Domain.Currencies;
 using Infrastructure.ExchangeProviders;
+using Infrastructure.ExchangeProviders.Frankfurter;
 
 namespace UnitTests.Infrastructure.ExchangeProviderFactoryTests
 {

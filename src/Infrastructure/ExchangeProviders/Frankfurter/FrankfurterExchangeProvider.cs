@@ -1,6 +1,6 @@
 ﻿using Domain.Currencies;
 
-namespace Infrastructure.ExchangeProviders
+namespace Infrastructure.ExchangeProviders.Frankfurter
 {
     public class FrankfurterExchangeProvider : IExchangeProvider
     {

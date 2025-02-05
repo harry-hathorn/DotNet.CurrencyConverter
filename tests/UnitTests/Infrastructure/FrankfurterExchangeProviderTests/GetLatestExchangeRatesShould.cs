@@ -1,4 +1,4 @@
-﻿using Infrastructure.ExchangeProviders;
+﻿using Infrastructure.ExchangeProviders.Frankfurter;
 using Moq;
 using Moq.Protected;
 

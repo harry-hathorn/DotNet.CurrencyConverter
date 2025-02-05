@@ -1,6 +1,6 @@
 ﻿using Domain.Currencies;
 using FluentAssertions;
-using Infrastructure.ExchangeProviders;
+using Infrastructure.ExchangeProviders.Frankfurter;
 
 namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
 {

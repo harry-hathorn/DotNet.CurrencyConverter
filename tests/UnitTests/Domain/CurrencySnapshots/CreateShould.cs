@@ -9,7 +9,7 @@ namespace UnitTests.Domain.Currencies
         [Fact]
         public void ReturnFailureForInvalid()
         {
-            var result = Currency.Create("Invalid", default);
+            var result = CurrencySnapshot.Create("Invalid", default);
             result.IsSuccess.Should().BeFalse();
             result.Error.Code.Should().Be(ErrorCode.BadInput);
             result.Error.Message.Should().Be("The currency code is invalid");
@@ -18,17 +18,17 @@ namespace UnitTests.Domain.Currencies
         [Fact]
         public void SucceedForValid()
         {
-            var result = Currency.Create("USD", new DateTime(2001, 12, 12));
+            var result = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12));
             result.IsSuccess.Should().BeTrue();
         }
 
         [Fact]
         public void SetProperties()
         {
-            var result = Currency.Create("USD", new DateTime(2001, 12, 12));
+            var result = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12));
             var currency = result.Value;
             result.IsSuccess.Should().BeTrue();
-            currency.Code.Should().Be("USD");
+            currency.Code.Value.Should().Be("USD");
             currency.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
         }
     }
