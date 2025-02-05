@@ -1,4 +1,4 @@
-﻿using Infrastructure.Providers;
+﻿using Infrastructure.ExchangeProviders;
 using Moq;
 using Moq.Protected;
 

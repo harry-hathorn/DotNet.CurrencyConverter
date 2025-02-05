@@ -1,8 +1,4 @@
-﻿using Moq.Protected;
-using Moq;
-using System.Net;
-
-namespace UnitTests.Extensions
+﻿namespace UnitTests.Extensions
 {
     public static class MoqExtensions
     {
