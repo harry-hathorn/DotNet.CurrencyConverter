@@ -39,5 +39,17 @@ namespace UnitTests.Domain.CurrencySnapshots
             result.Error.Message.Should().Be("The requested currency code is not allowed");
         }
 
+        [Fact]
+        public void FailWhenNotFound() {
+            var currencies = new List<(string Code, decimal Amount)>
+            {
+                ("AUD", 1.6629m),
+                ("BGN", 1.9558m),
+            };
+            var currencySnapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies).Value;
+            var converted = currencySnapShot.Convert(new Money(1), CurrencyCode.Gbp);
+            converted.IsFailure.Should().BeTrue();
+            converted.Error.Should().Be(Error.NotFound);
+        }
     }
 }

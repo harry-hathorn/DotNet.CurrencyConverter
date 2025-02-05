@@ -61,6 +61,10 @@ namespace Domain.Currencies
                 return Result.Failure<Money>(IlligalConversionError);
             }
             var exchangeRate = ExchangeRates.FirstOrDefault(x => x.Code == currencyCode);
+            if (exchangeRate == null)
+            {
+                return Result.Failure<Money>(Error.NotFound);
+            }
             return new Money(exchangeRate.Amount.Value * amount.Value);
         }
     }
