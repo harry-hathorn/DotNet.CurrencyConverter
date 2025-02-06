@@ -46,11 +46,9 @@ namespace Domain.Currencies
                 Result = CurrencyCode.FromCode(x.Code),
                 Original = x
             }).ToList();
-            if (exchangeResults.Any(x => x.Result.IsFailure))
-            {
-                return Result.Failure<CurrencySnapshot>(CurrencyCode.InvalidCodeError);
-            }
-            var exchanges = exchangeResults.Select(x => new Money(x.Result.Value, x.Original.Amount)).ToList();
+
+            var exchanges = exchangeResults.Where(x=>x.Result.IsSuccess)
+                .Select(x => new Money(x.Result.Value, x.Original.Amount)).ToList();
             return new CurrencySnapshot(currencyCodeResult.Value, dateCaptured, exchanges);
         }
 

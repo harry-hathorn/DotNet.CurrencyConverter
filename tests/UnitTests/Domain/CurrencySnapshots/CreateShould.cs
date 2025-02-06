@@ -16,16 +16,20 @@ namespace UnitTests.Domain.Currencies
         }
 
         [Fact]
-        public void ReturnFailureForInvalidExchange()
+        public void SkipInvalidExchange()
         {
             var currencies = new List<(string Code, decimal Amount)>
             {
-                ("Invalid", 1.6629m)
+                ("Invalid", 1.6629m),
+                ("EUR", 1.6629m)
             };
             var result = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies);
-            result.IsSuccess.Should().BeFalse();
-            result.Error.Code.Should().Be(ErrorCode.BadInput);
-            result.Error.Message.Should().Be("The currency code is invalid");
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Code.Value.Should().Be("USD");
+            result.Value.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
+            result.Value.ExchangeRates
+                .Should()
+                .OnlyContain(rate => rate.Code.Value == "EUR" && rate.Amount == 1.6629m);
         }
 
 

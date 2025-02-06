@@ -142,6 +142,10 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
                 {
                     ("EUR", 0.83m)
                 }).Value,
+                  CurrencySnapshot.Create("USD", new DateTime(2021, 5, 2), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.84m)
+                }).Value,
                 CurrencySnapshot.Create("USD", new DateTime(2021, 5, 3), new List<(string Code, decimal Amount)>
                 {
                     ("EUR", 0.85m)
