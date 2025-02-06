@@ -38,6 +38,20 @@ namespace UnitTests.Application
                 new Mock<ILogger<FindLatestCurrencyHandler>>().Object,
                 _cacheServiceMock.Object);
         }
+        [Fact]
+        public async Task NotCallProvider_WhenCached()
+        {
+            var currencies = new List<(string Code, decimal Amount)>
+            {
+                ("GBP", 1.6629m),
+                ("EUR", 12.6629m)
+            };
+            var snapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies);
+            _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"latest-GBP", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(snapShot.Value);
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp), Times.Never);
+        }
 
         [Fact]
         public async Task CallCache()
@@ -83,6 +97,31 @@ namespace UnitTests.Application
         [Fact]
         public async Task MapToDto()
         {
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var dto = result.Value;
+            result.IsSuccess.Should().BeTrue();
+            dto.CurrencyCode.Should().Be("USD");
+            dto.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
+            dto.ExchangeRates.Should().BeEquivalentTo(
+                new List<(string Code, decimal Amount)>
+                {
+                    ("GBP", 1.6629m),
+                    ("EUR", 12.6629m)
+                });
+        }
+
+        [Fact]
+        public async Task MapToDto_WhenCached()
+        {
+            var currencies = new List<(string Code, decimal Amount)>
+            {
+                ("GBP", 1.6629m),
+                ("EUR", 12.6629m)
+            };
+            var snapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies);
+            _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"latest-GBP", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(snapShot.Value);
+
             var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
