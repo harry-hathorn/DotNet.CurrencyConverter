@@ -24,7 +24,7 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>($"https://api.frankfurter.dev/v1/latest?base={currencyCode.Value}");
+                var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>($"v1/latest?base={currencyCode.Value}");
 
                 List<(string Code, decimal Amount)> expectedRates = response.Rates.GetType()
                   .GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -49,7 +49,7 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
+                var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
                 List<CurrencySnapshot> result = new List<CurrencySnapshot>();
                 foreach (var rate in response.Rates)
                 {

@@ -42,7 +42,10 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             ).ReturnsAsync(httpResponse);
-            var httpClient = new HttpClient(_mockHttpMessageHandler.Object);
+            var httpClient = new HttpClient(_mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri("https://api.frankfurter.dev/")
+            };
             _exchangeProvider = new FrankfurterExchangeProvider(httpClient, new Mock<ILogger<FrankfurterExchangeProvider>>().Object);
         }
 

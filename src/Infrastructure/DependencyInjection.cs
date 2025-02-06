@@ -18,29 +18,33 @@ namespace Infrastructure
             IConfiguration configuration)
         {
             services.AddCaching(configuration);
-            services.AddCurrencyProviders();
+            services.AddCurrencyProviders(configuration);
             services.AddUtilities();
             return services;
         }
 
         private static void AddCaching(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddStackExchangeRedisCache(options =>  options.Configuration = configuration.GetConnectionString("Cache"));
+            services.AddStackExchangeRedisCache(options => options.Configuration = configuration.GetConnectionString("Cache"));
             services.AddSingleton<ICacheService, CacheService>();
         }
 
-        public static IServiceCollection AddCurrencyProviders(this IServiceCollection services)
+        public static IServiceCollection AddCurrencyProviders(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddHttpClient<IExchangeProvider, FrankfurterExchangeProvider>()
-                .AddStandardResilienceHandler().Configure(x =>
-                {
-                    x.Retry.MaxRetryAttempts = 3;
-                    x.Retry.Delay = TimeSpan.FromSeconds(1);
-                    x.Retry.UseJitter = true;
-                    x.Retry.BackoffType = DelayBackoffType.Exponential;
-                    x.CircuitBreaker.MinimumThroughput = 10;
-                    x.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
-                });
+            var baseUrl = configuration["ProviderUrls:FrankfurterBaseUrl"];
+            services.AddHttpClient<IExchangeProvider, FrankfurterExchangeProvider>(client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            })
+            .AddStandardResilienceHandler().Configure(x =>
+            {
+                x.Retry.MaxRetryAttempts = 3;
+                x.Retry.Delay = TimeSpan.FromSeconds(1);
+                x.Retry.UseJitter = true;
+                x.Retry.BackoffType = DelayBackoffType.Exponential;
+                x.CircuitBreaker.MinimumThroughput = 10;
+                x.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+            });
             services.AddTransient<IExchangeProviderFactory, ExchangeProviderFactory>();
             return services;
         }
