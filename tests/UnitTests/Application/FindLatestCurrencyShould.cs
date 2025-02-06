@@ -83,5 +83,17 @@ namespace UnitTests.Application
                     ("EUR", 12.6629m)
                 });
         }
+
+        [Fact]
+        public async Task FailWhenProviderFails()
+        {
+            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>()))
+               .ReturnsAsync(Result.Failure<CurrencySnapshot>(Error.SystemError));
+
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().Be(Error.SystemError);
+        }
     }
 }

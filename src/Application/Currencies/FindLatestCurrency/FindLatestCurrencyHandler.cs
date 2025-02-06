@@ -33,6 +33,10 @@ namespace Application.Currencies.FindLatestCurrency
                 return Result.Failure<FindLatestCurrencyResultDto>(Error.SystemError);
             }
             var result = await exchangeProvider.FindLatestAsync(currencyCodeResult.Value);
+            if (result.IsFailure)
+            {
+                return Result.Failure<FindLatestCurrencyResultDto>(result.Error);
+            }
             var currencySnapShot = result.Value;
             return new FindLatestCurrencyResultDto(currencySnapShot.Code.Value,
                 currencySnapShot.DateCaptured,
