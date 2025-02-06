@@ -7,6 +7,7 @@ using FluentAssertions;
 using Newtonsoft.Json;
 using System.Reflection;
 using Infrastructure.ExchangeProviders.Frankfurter.Models;
+using Domain.Common;
 
 namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
 {
@@ -123,6 +124,24 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
             var snapShots = result.Value;
             result.IsSuccess.Should().BeTrue();
             snapShots.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
+        }
+
+        [Fact]
+        public async Task ReturnFailureForInvalidJson()
+        {
+            var httpResponse = new HttpResponseMessage()
+            {
+                Content = new StringContent(string.Empty)
+            };
+
+            _mockHttpMessageHandler.Protected().Setup<Task<HttpResponseMessage>>("SendAsync",
+                   ItExpr.IsAny<HttpRequestMessage>(),
+                   ItExpr.IsAny<CancellationToken>()
+               ).ReturnsAsync(httpResponse);
+
+            var result = await _exchangeProvider.SearchAsync(CurrencyCode.Eur, default, default);
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().Be(Error.SystemError);
         }
     }
 }

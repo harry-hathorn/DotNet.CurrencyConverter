@@ -47,15 +47,23 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
 
         public async Task<Result<List<CurrencySnapshot>>> SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate)
         {
-            var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
 
-            var expected = response.Rates.Select(rate => CurrencySnapshot.Create(
-              "USD",
-              rate.Key,
-              rate.Value.Select(r => (r.Key, r.Value)).ToList()
-          ).Value).ToList();
+                var expected = response.Rates.Select(rate => CurrencySnapshot.Create(
+                  "USD",
+                  rate.Key,
+                  rate.Value.Select(r => (r.Key, r.Value)).ToList()
+              ).Value).ToList();
 
-            return expected;
+                return expected;
+            }
+            catch (JsonException exception)
+            {
+                _logger.LogError("Franfurter returned an invalid json payload, {error}", exception.Message);
+                return Result.Failure<List<CurrencySnapshot>>(Error.SystemError);
+            }
         }
     }
 }
