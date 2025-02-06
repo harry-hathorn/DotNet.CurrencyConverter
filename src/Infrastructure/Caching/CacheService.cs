@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using System.Threading;
 
 namespace Infrastructure.Caching
@@ -12,9 +13,16 @@ namespace Infrastructure.Caching
             _cache = cache;
         }
 
-        public async Task GetAsync(string key, CancellationToken cancellationToken)
+        public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken)
+               where T : class
         {
-            byte[] bytes = await _cache.GetAsync(key, cancellationToken);
+            string? cachedValue = await _cache.GetStringAsync(key, cancellationToken);
+            if (cachedValue == null)
+            {
+                return null;
+            }
+            T? value = JsonConvert.DeserializeObject<T>(cachedValue);
+            return value;
         }
     }
 }
