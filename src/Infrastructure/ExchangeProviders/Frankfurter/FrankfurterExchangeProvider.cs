@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Infrastructure.ExchangeProviders.Frankfurter.Models;
 
 namespace Infrastructure.ExchangeProviders.Frankfurter
 {
@@ -44,9 +45,17 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
             }
         }
 
-        public async Task SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate)
+        public async Task<Result<List<CurrencySnapshot>>> SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate)
         {
-            await _httpClient.GetAsync($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
+            var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
+
+            var expected = response.Rates.Select(rate => CurrencySnapshot.Create(
+              "USD",
+              rate.Key,
+              rate.Value.Select(r => (r.Key, r.Value)).ToList()
+          ).Value).ToList();
+
+            return expected;
         }
     }
 }

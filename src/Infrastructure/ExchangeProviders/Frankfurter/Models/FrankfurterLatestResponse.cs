@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.ExchangeProviders.Frankfurter
+﻿namespace Infrastructure.ExchangeProviders.Frankfurter.Models
 {
     internal class FrankfurterLatestResponse
     {

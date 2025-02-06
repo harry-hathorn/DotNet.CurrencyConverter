@@ -3,7 +3,10 @@ using Infrastructure.ExchangeProviders.Frankfurter;
 using Microsoft.Extensions.Logging;
 using Moq.Protected;
 using Moq;
-using FluentAssertions.Common;
+using FluentAssertions;
+using Newtonsoft.Json;
+using System.Reflection;
+using Infrastructure.ExchangeProviders.Frankfurter.Models;
 
 namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
 {
@@ -25,11 +28,11 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
                            ""rates"": {
                             ""1999-12-30"": {
                               ""AUD"": 1.5422,
-                              ""CAD"": 1.4608,
+                              ""CAD"": 1.4608
                             },
                             ""2000-01-03"": {
                                   ""AUD"": 1.5346,
-                                  ""CAD"": 1.4571,        
+                                  ""CAD"": 1.4571      
                             }
                           }
                  }")
@@ -55,6 +58,71 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
                     && req.RequestUri == expectedUri
                 ),
                 ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task MapToCurrencySnapshots()
+        {
+            var rates = new Dictionary<DateTime, Dictionary<string, decimal>>
+            {
+                { new DateTime(2021, 5, 1), new Dictionary<string, decimal> { { "EUR", 0.83m }, { "GBP", 0.72m } } },
+                { new DateTime(2021, 5, 2), new Dictionary<string, decimal> { { "EUR", 0.84m }, { "GBP", 0.73m } } },
+                { new DateTime(2021, 5, 3), new Dictionary<string, decimal> { { "EUR", 0.85m }, { "GBP", 0.74m } } },
+                { new DateTime(2021, 5, 4), new Dictionary<string, decimal> { { "EUR", 0.86m }, { "GBP", 0.75m } } },
+                { new DateTime(2021, 5, 5), new Dictionary<string, decimal> { { "EUR", 0.87m }, { "GBP", 0.76m } } }
+            };
+            var expected = new List<CurrencySnapshot>
+            {
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 1), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.83m),
+                    ("GBP", 0.72m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 2), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.84m),
+                    ("GBP", 0.73m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 3), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.85m),
+                    ("GBP", 0.74m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 4), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.86m),
+                    ("GBP", 0.75m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 5), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.87m),
+                    ("GBP", 0.76m)
+                }).Value
+            };
+
+            var frankfurterResponse = new FrankfurterSearchResponse()
+            {
+                Amount = 100,
+                Base = "USD",
+                StartDate = new DateTime(2021, 5, 1),
+                EndDate = new DateTime(2021, 5, 15),
+                Rates = rates
+            };
+
+            var httpResponse = new HttpResponseMessage()
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(frankfurterResponse))
+            };
+
+            _mockHttpMessageHandler.Protected().Setup<Task<HttpResponseMessage>>("SendAsync",
+                   ItExpr.IsAny<HttpRequestMessage>(),
+                   ItExpr.IsAny<CancellationToken>()
+               ).ReturnsAsync(httpResponse);
+
+            var result = await _exchangeProvider.SearchAsync(CurrencyCode.Usd, new DateTime(2021, 5, 1), new DateTime(2021, 5, 5));
+            var snapShots = result.Value;
+            result.IsSuccess.Should().BeTrue();
+            snapShots.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
         }
     }
 }

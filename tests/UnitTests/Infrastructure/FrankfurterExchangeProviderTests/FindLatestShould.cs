@@ -7,6 +7,7 @@ using System.Reflection;
 using Error = Domain.Common.Error;
 using Microsoft.Extensions.Logging;
 using Domain.Currencies;
+using Infrastructure.ExchangeProviders.Frankfurter.Models;
 
 namespace UnitTests.Infrastructure.ExchangeProviders
 {
