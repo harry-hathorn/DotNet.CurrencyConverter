@@ -30,6 +30,7 @@ namespace Application.Currencies.FindLatestCurrency
                 _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
                 return Result.Failure(Error.SystemError);
             }
+            var result = await exchangeProvider.FindLatestAsync(currencyCodeResult.Value);
 
             return null;
         }

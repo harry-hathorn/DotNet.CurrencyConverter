@@ -51,5 +51,13 @@ namespace UnitTests.Application
             result.Error.Code.Should().Be(ErrorCode.BadInput);
             result.Error.Message.Should().Be("The currency code is invalid");
         }
+
+        [Fact]
+        public async Task CallProvider()
+        {
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            _factoryMock.Verify(x => x.GetProvider(ExchangeProviderType.Frankfurter), Times.Once);
+            _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp), Times.Once);
+        }
     }
 }
