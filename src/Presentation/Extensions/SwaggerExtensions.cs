@@ -5,7 +5,7 @@ namespace Presentation.Extensions;
 
 internal static class SwaggerExtensions
 {
-    internal static IServiceCollection AddSwaggerGenWithAuth(this IServiceCollection services)
+    internal static IServiceCollection AddSwaggerWithAuth(this IServiceCollection services)
     {
         services.AddSwaggerGen(o =>
         {

@@ -7,8 +7,7 @@ When running the application locally, you can use the following JWT token for au
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijc4MWFhZmZmLWYzOTUtNDFjNy04MDkyLTlkMDEyZjhmOGEwZiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJhdWQiOiJ1c2VycyIsImlzcyI6ImN1cnJlbmN5LmNvbnZlcnRlciIsImV4cCI6MTczODg3MDQ1NSwiaWF0IjoxNzM4ODcwNDU1LCJuYmYiOjE3Mzg4NzA0NTV9.VC02bvEeqB6yNTBXyw6JC3utXI-ooPCXpWp4pHbelLA
 ```
 
-You can insert the above sample into https://jwt.io/ and adjust the expiration time for local development.
-Find the JWT payload below.
+You can insert the above sample into https://jwt.io/ and adjust the expiration time and insert the JWT secret for local development.
 
 ### JWT Token Header
 ```json

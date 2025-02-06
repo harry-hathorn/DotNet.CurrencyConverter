@@ -2,7 +2,9 @@
 using Application.Currencies.FindLatestCurrency;
 using Application.Currencies.SearchCurrency;
 using Domain.Common;
+using Infrastructure.Extensions;
 using MediatR;
+using Presentation.Extensions;
 
 namespace Presentation.Currencies;
 
@@ -20,7 +22,8 @@ public static class CurrencyEndpoints
             var result = await sender.Send(new FindLatestCurrencyQuery(currencyCode));
             return HandleResult(result);
         })
-        .RequireAuthorization(Infrastructure.DependencyInjection.UserPolicy);
+        .RequireAuthorization(AuthorizationExtensions.UserRolePolicy)
+        .RequireRateLimiting(RateLimiterExtensions.UserRatePolicy);
 
         app.MapGet("currency/search/{currencyCode}", async (
             string currencyCode,
@@ -32,7 +35,8 @@ public static class CurrencyEndpoints
             var result = await sender.Send(new SearchCurrencyQuery(currencyCode, startDate, endDate));
             return HandleResult(result);
         })
-        .RequireAuthorization(Infrastructure.DependencyInjection.UserPolicy); ;
+        .RequireAuthorization(AuthorizationExtensions.UserRolePolicy)
+        .RequireRateLimiting(RateLimiterExtensions.UserRatePolicy); 
 
         app.MapGet("currency/convert/{baseCurrency}/{targetCurrency}/{amount}", async (
            string baseCurrency,
@@ -44,7 +48,8 @@ public static class CurrencyEndpoints
             var result = await sender.Send(new ConvertCurrencyQuery(baseCurrency, amount, targetCurrency));
             return HandleResult(result);
         })
-        .RequireAuthorization(Infrastructure.DependencyInjection.UserPolicy); ;
+        .RequireAuthorization(AuthorizationExtensions.UserRolePolicy)
+        .RequireRateLimiting(RateLimiterExtensions.UserRatePolicy);
     }
 
     private static IResult HandleResult<T>(Result<T> result)

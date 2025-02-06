@@ -3,21 +3,18 @@ using Domain.Currencies;
 using Infrastructure.Caching;
 using Infrastructure.ExchangeProviders;
 using Infrastructure.ExchangeProviders.Frankfurter;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Infrastructure.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
-using Microsoft.IdentityModel.Tokens;
 using Polly;
-using System.Text;
 using TimeProvider = Infrastructure.Utilities.TimeProvider;
+
 
 namespace Infrastructure
 {
     public static class DependencyInjection
     {
-        public const string UserPolicy = "user_policy";
-
         public static IServiceCollection InjectInfrastructure(
             this IServiceCollection services,
             IConfiguration configuration)
@@ -28,26 +25,6 @@ namespace Infrastructure
             services.AddAuthentication(configuration);
             return services;
         }
-
-        private static void AddAuthentication(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddAuthorization();
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(o =>
-                {
-                    o.RequireHttpsMetadata = false;
-                    o.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:JwtSecret"]!)),
-                        ValidIssuer = configuration["Authentication:Issuer"],
-                        ValidAudience = configuration["Authentication:Audience"],
-                    };
-                });
-
-            services.AddAuthorizationBuilder()
-                .AddPolicy(UserPolicy, policy => policy.RequireRole("user"));
-        }
-
 
         private static void AddCaching(this IServiceCollection services, IConfiguration configuration)
         {

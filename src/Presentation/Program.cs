@@ -13,7 +13,9 @@ namespace Presentation
 
             builder.Services.AddAuthorization();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGenWithAuth();
+            builder.Services.AddSwaggerWithAuth();
+
+            builder.Services.AddRateLimiting();
             builder.Services.InjectApplication(builder.Configuration);
             builder.Services.InjectInfrastructure(builder.Configuration);
             var app = builder.Build();
@@ -27,6 +29,7 @@ namespace Presentation
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseRateLimiter();
             app.MapCurrencyEndpoints();
 
             app.Run();
