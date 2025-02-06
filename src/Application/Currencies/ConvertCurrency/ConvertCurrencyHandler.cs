@@ -1,11 +1,11 @@
 ﻿using Application.Abstractions;
-using Application.Currencies.CompareCurrency.Dtos;
+using Application.Currencies.ConvertCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Currencies.CompareCurrency
+namespace Application.Currencies.ConvertCurrency
 {
     public class ConvertCurrencyHandler : IRequestHandler<ConvertCurrencyQuery, Result<ConvertCurrencyResultDto>>
     {

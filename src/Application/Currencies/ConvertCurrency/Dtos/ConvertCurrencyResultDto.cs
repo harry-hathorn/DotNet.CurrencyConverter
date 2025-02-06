@@ -1,4 +1,4 @@
-﻿namespace Application.Currencies.CompareCurrency.Dtos
+﻿namespace Application.Currencies.ConvertCurrency.Dtos
 {
     public record ConvertCurrencyResultDto(
         DateTime DateCaptured,
