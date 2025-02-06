@@ -19,7 +19,7 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
 
         public ExchangeProviderType ProviderType { get; } = ExchangeProviderType.Frankfurter;
 
-        public async Task<Result<CurrencySnapshot>> GetLatestExchangeRatesAsync(CurrencyCode currencyCode)
+        public async Task<Result<CurrencySnapshot>> FindLatestAsync(CurrencyCode currencyCode)
         {
             try
             {
@@ -42,6 +42,11 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
                 _logger.LogError("Franfurter returned an invalid json payload, {error}", exception.Message);
                 return Result.Failure<CurrencySnapshot>(Error.SystemError);
             }
+        }
+
+        public async Task SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate)
+        {
+            await _httpClient.GetAsync($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
         }
     }
 }

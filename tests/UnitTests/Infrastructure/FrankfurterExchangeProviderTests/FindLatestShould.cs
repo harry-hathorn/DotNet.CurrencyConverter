@@ -10,12 +10,12 @@ using Domain.Currencies;
 
 namespace UnitTests.Infrastructure.ExchangeProviders
 {
-    public class GetLatestExchangeRatesShould
+    public class FindLatestShould
     {
         private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private readonly FrankfurterExchangeProvider _exchangeProvider;
 
-        public GetLatestExchangeRatesShould()
+        public FindLatestShould()
         {
             var httpResponse = new HttpResponseMessage()
             {
@@ -41,7 +41,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
         [Fact]
         public async Task CallApiOnce()
         {
-            await _exchangeProvider.GetLatestExchangeRatesAsync(CurrencyCode.Eur);
+            await _exchangeProvider.FindLatestAsync(CurrencyCode.Eur);
             var expectedUri = new Uri("https://api.frankfurter.dev/v1/latest?base=EUR");
             _mockHttpMessageHandler.Protected().Verify<Task<HttpResponseMessage>>("SendAsync",
                 Times.Exactly(1),
@@ -111,7 +111,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
                    ItExpr.IsAny<CancellationToken>()
                ).ReturnsAsync(httpResponse);
 
-            var result = await _exchangeProvider.GetLatestExchangeRatesAsync(CurrencyCode.Eur);
+            var result = await _exchangeProvider.FindLatestAsync(CurrencyCode.Eur);
             var snapShot = result.Value;
             result.IsSuccess.Should().BeTrue();
 
@@ -134,7 +134,7 @@ namespace UnitTests.Infrastructure.ExchangeProviders
                    ItExpr.IsAny<CancellationToken>()
                ).ReturnsAsync(httpResponse);
 
-            var result = await _exchangeProvider.GetLatestExchangeRatesAsync(CurrencyCode.Eur);
+            var result = await _exchangeProvider.FindLatestAsync(CurrencyCode.Eur);
 
             result.IsFailure.Should().BeTrue();
             result.Error.Should().Be(Error.SystemError);
