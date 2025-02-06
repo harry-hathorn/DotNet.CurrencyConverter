@@ -2,7 +2,7 @@
 
 namespace Infrastructure.ExchangeProviders
 {
-    public class ExchangeProviderFactory
+    public class ExchangeProviderFactory : IExchangeProviderFactory
     {
         private readonly IEnumerable<IExchangeProvider> _exchangeProviders;
         public ExchangeProviderFactory(IEnumerable<IExchangeProvider> exchangeProviders)

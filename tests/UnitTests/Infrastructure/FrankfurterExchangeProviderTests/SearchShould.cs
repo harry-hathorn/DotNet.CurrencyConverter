@@ -5,7 +5,6 @@ using Moq.Protected;
 using Moq;
 using FluentAssertions;
 using Newtonsoft.Json;
-using System.Reflection;
 using Infrastructure.ExchangeProviders.Frankfurter.Models;
 using Domain.Common;
 
