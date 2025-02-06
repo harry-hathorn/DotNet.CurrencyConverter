@@ -24,7 +24,7 @@ namespace Application.Currencies.FindLatestCurrency
 
         public async Task<Result<FindLatestCurrencyResultDto>> Handle(FindLatestCurrencyQuery command, CancellationToken cancellationToken)
         {
-            var currencyCodeResult = CurrencyCode.FromCode(command.currencyCode);
+            var currencyCodeResult = CurrencyCode.FromCode(command.CurrencyCode);
             if (currencyCodeResult.IsFailure)
             {
                 return Result.Failure<FindLatestCurrencyResultDto>(currencyCodeResult.Error);

@@ -4,5 +4,5 @@ using MediatR;
 
 namespace Application.Currencies.FindLatestCurrency
 {
-    public record class FindLatestCurrencyQuery(string currencyCode): IRequest<Result<FindLatestCurrencyResultDto>>;
+    public record class FindLatestCurrencyQuery(string CurrencyCode): IRequest<Result<FindLatestCurrencyResultDto>>;
 }

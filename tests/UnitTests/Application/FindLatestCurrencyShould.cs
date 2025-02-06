@@ -62,7 +62,7 @@ namespace UnitTests.Application
         }
 
         [Fact]
-        public async Task FailIfNoProvider()
+        public async Task Fail_IfNoProvider()
         {
             _factoryMock.Setup(x => x.GetProvider(It.IsAny<ExchangeProviderType>()))
               .Returns(() => null);
@@ -73,7 +73,7 @@ namespace UnitTests.Application
         }
 
         [Fact]
-        public async Task FailIfInvalidCurrency()
+        public async Task Fail_IfInvalidCurrency()
         {
             var result = await _handler.Handle(new FindLatestCurrencyQuery("INVALID"), default);
             result.Error.Code.Should().Be(ErrorCode.BadInput);
@@ -101,7 +101,7 @@ namespace UnitTests.Application
             var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
-            dto.CurrencyCode.Should().Be("USD");
+            dto.Code.Should().Be("USD");
             dto.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
             dto.ExchangeRates.Should().BeEquivalentTo(
                 new List<(string Code, decimal Amount)>
@@ -126,7 +126,7 @@ namespace UnitTests.Application
             var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
-            dto.CurrencyCode.Should().Be("USD");
+            dto.Code.Should().Be("USD");
             dto.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
             dto.ExchangeRates.Should().BeEquivalentTo(
                 new List<(string Code, decimal Amount)>
@@ -137,7 +137,7 @@ namespace UnitTests.Application
         }
 
         [Fact]
-        public async Task FailWhenProviderFails()
+        public async Task Fail_WhenProviderFails()
         {
             _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>()))
                .ReturnsAsync(Result.Failure<CurrencySnapshot>(Error.SystemError));
