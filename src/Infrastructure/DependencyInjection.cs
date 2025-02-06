@@ -5,6 +5,7 @@ using Infrastructure.ExchangeProviders;
 using Infrastructure.ExchangeProviders.Frankfurter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using TimeProvider = Infrastructure.Utilities.TimeProvider;
 
@@ -31,7 +32,15 @@ namespace Infrastructure
         public static IServiceCollection AddCurrencyProviders(this IServiceCollection services)
         {
             services.AddHttpClient<IExchangeProvider, FrankfurterExchangeProvider>()
-                .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(2)));
+                .AddStandardResilienceHandler().Configure(x =>
+                {
+                    x.Retry.MaxRetryAttempts = 3;
+                    x.Retry.Delay = TimeSpan.FromSeconds(1);
+                    x.Retry.UseJitter = true;
+                    x.Retry.BackoffType = DelayBackoffType.Exponential;
+                    x.CircuitBreaker.MinimumThroughput = 10;
+                    x.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
+                });
             services.AddTransient<IExchangeProviderFactory, ExchangeProviderFactory>();
             return services;
         }

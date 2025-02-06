@@ -1,5 +1,4 @@
 ﻿using Application.Abstractions;
-using Application.Currencies.CompareCurrency;
 using Application.Currencies.ConvertCurrency;
 using Domain.Common;
 using Domain.Currencies;

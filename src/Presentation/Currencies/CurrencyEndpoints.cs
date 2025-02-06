@@ -1,4 +1,4 @@
-﻿using Application.Currencies.CompareCurrency;
+﻿using Application.Currencies.ConvertCurrency;
 using Application.Currencies.FindLatestCurrency;
 using Application.Currencies.SearchCurrency;
 using Domain.Common;
