@@ -12,6 +12,7 @@ namespace UnitTests.Application
     public class FindLatestCurrencyShould
     {
         private readonly Mock<IExchangeProvider> _exchangeProviderMock;
+        private readonly Mock<ITimeProvider> _timeProviderMock;
         private readonly Mock<IExchangeProviderFactory> _factoryMock;
         private readonly Mock<ICacheService> _cacheServiceMock;
         private readonly FindLatestCurrencyHandler _handler;
@@ -19,6 +20,8 @@ namespace UnitTests.Application
         public FindLatestCurrencyShould()
         {
             _factoryMock = new Mock<IExchangeProviderFactory>();
+            _timeProviderMock = new Mock<ITimeProvider>();
+            _timeProviderMock.Setup(x => x.UtcNow()).Returns(() => new DateTime(2001, 2, 23));
             _exchangeProviderMock = new Mock<IExchangeProvider>();
             _cacheServiceMock = new Mock<ICacheService>();
 
@@ -37,12 +40,13 @@ namespace UnitTests.Application
 
             _handler = new FindLatestCurrencyHandler(_factoryMock.Object,
                 new Mock<ILogger<FindLatestCurrencyHandler>>().Object,
-                _cacheServiceMock.Object);
+                _cacheServiceMock.Object,
+                _timeProviderMock.Object);
         }
         [Fact]
         public async Task NotCallProvider_WhenCached()
         {
-            _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"latest-GBP", It.IsAny<CancellationToken>()))
+            _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"2001-02-23-GBP", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_snapShot.Value);
             await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
             _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp), Times.Never);
@@ -52,7 +56,7 @@ namespace UnitTests.Application
         public async Task CallCache()
         {
             await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
-            _cacheServiceMock.Verify(x => x.GetAsync<CurrencySnapshot>($"latest-GBP", It.IsAny<CancellationToken>()), Times.Once);
+            _cacheServiceMock.Verify(x => x.GetAsync<CurrencySnapshot>($"2001-02-23-GBP", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -93,7 +97,7 @@ namespace UnitTests.Application
         public async Task CallSetCache()
         {
             var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
-            _cacheServiceMock.Verify(x => x.SetAsync($"latest-GBP", _snapShot.Value, It.IsAny<CancellationToken>()), Times.Once);
+            _cacheServiceMock.Verify(x => x.SetAsync($"2001-02-23-GBP", _snapShot.Value, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -121,7 +125,7 @@ namespace UnitTests.Application
                 ("EUR", 12.6629m)
             };
             var snapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies);
-            _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"latest-GBP", It.IsAny<CancellationToken>()))
+            _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"2001-02-23-GBP", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(snapShot.Value);
 
             var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);

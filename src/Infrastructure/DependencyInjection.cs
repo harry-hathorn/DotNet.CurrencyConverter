@@ -6,7 +6,7 @@ using Infrastructure.ExchangeProviders.Frankfurter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
-using StackExchange.Redis;
+using TimeProvider = Infrastructure.Utilities.TimeProvider;
 
 namespace Infrastructure
 {
@@ -18,6 +18,7 @@ namespace Infrastructure
         {
             services.AddCaching(configuration);
             services.AddCurrencyProviders();
+            services.AddUtilities();
             return services;
         }
 
@@ -32,6 +33,11 @@ namespace Infrastructure
             services.AddHttpClient<IExchangeProvider, FrankfurterExchangeProvider>()
                 .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(3, _ => TimeSpan.FromSeconds(2)));
             services.AddTransient<IExchangeProviderFactory, ExchangeProviderFactory>();
+            return services;
+        }
+        public static IServiceCollection AddUtilities(this IServiceCollection services)
+        {
+            services.AddSingleton<ITimeProvider, TimeProvider>();
             return services;
         }
     }

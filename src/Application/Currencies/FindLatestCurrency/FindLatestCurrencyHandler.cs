@@ -12,14 +12,17 @@ namespace Application.Currencies.FindLatestCurrency
         private readonly IExchangeProviderFactory _exchangeFactory;
         private readonly ILogger<FindLatestCurrencyHandler> _logger;
         private readonly ICacheService _cacheService;
+        private readonly ITimeProvider _timeProvider;
 
         public FindLatestCurrencyHandler(IExchangeProviderFactory exchangeFactory,
             ILogger<FindLatestCurrencyHandler> logger,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            ITimeProvider timeProvider)
         {
             _cacheService = cacheService;
             _exchangeFactory = exchangeFactory;
             _logger = logger;
+            _timeProvider = timeProvider;
         }
 
         public async Task<Result<FindLatestCurrencyResultDto>> Handle(FindLatestCurrencyQuery command, CancellationToken cancellationToken)
@@ -36,7 +39,7 @@ namespace Application.Currencies.FindLatestCurrency
                 _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
                 return Result.Failure<FindLatestCurrencyResultDto>(Error.SystemError);
             }
-            var cacheKey = $"latest-{currencyCode.Value}";
+            var cacheKey = $"{_timeProvider.UtcNow().ToString("yyyy-MM-dd")}-{currencyCode.Value}";
             var currencySnapShot = await _cacheService.GetAsync<CurrencySnapshot>(cacheKey, cancellationToken);
             if (currencySnapShot == null)
             {

@@ -3,7 +3,6 @@ using FluentAssertions;
 using Infrastructure.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
 

@@ -1,5 +1,4 @@
-﻿using Domain.Common;
-using Domain.Currencies;
+﻿using Domain.Currencies;
 using FluentAssertions;
 
 namespace UnitTests.Domain.CurrencySnapshots
