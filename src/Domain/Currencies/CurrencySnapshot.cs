@@ -56,7 +56,7 @@ namespace Domain.Currencies
 
         public Result<Money> Convert(decimal amount, CurrencyCode currencyCode)
         {
-            if (IllegalConversions.Contains(currencyCode))
+            if (!IsLegalConversion(currencyCode))
             {
                 return Result.Failure<Money>(IlligalConversionError);
             }
@@ -66,6 +66,10 @@ namespace Domain.Currencies
                 return Result.Failure<Money>(Error.NotFound);
             }
             return new Money(currencyCode, exchangeRate.Amount * amount);
+        }
+        public static bool IsLegalConversion(CurrencyCode currencyCode)
+        {
+            return !IllegalConversions.Contains(currencyCode);
         }
     }
 }
