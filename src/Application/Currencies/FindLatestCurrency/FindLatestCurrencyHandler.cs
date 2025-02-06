@@ -46,6 +46,7 @@ namespace Application.Currencies.FindLatestCurrency
                     return Result.Failure<FindLatestCurrencyResultDto>(result.Error);
                 }
                 currencySnapShot = result.Value;
+                await _cacheService.SetAsync(cacheKey, currencySnapShot, cancellationToken);
             }
             return new FindLatestCurrencyResultDto(currencySnapShot.Code.Value,
                 currencySnapShot.DateCaptured,
