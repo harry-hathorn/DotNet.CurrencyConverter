@@ -7,9 +7,23 @@ services:
     build:
       context: .
       dockerfile: src/Presentation/Dockerfile
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://currencyconverter.seq:5341/ingest/otlp/v1/traces
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 
   currency.converter.redis:
     image: redis:latest
     restart: always
     ports:
       - '6379:6379'
+
+  currencyconverter.seq:
+    image: datalust/seq:latest
+    container_name: CurrencyConverter.Seq
+    volumes:
+      - ./.containers/seq:/data
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - 5341:5341
+      - 8083:80

@@ -8,7 +8,7 @@ namespace Infrastructure.Extensions
 {
     public static class AuthorizationExtensions
     {
-        public const string UserRolePolicy = "user_policy";
+        public const string UserRolePolicy = "user_role_policy";
         internal static void AddAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAuthorization();

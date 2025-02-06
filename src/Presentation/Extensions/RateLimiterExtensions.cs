@@ -4,7 +4,7 @@ namespace Presentation.Extensions
 {
     internal static class RateLimiterExtensions
     {
-        internal const string UserRatePolicy = "user_rate";
+        internal const string UserRatePolicy = "user_rate_policy";
         internal static IServiceCollection AddRateLimiting(this IServiceCollection services)
         {
             services.AddRateLimiter(options =>
