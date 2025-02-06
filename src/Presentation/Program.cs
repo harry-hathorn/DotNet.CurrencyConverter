@@ -1,6 +1,9 @@
 using Presentation.Currencies;
 using Application;
 using Infrastructure;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Presentation.Extensions;
 
 namespace Presentation
 {
@@ -12,7 +15,7 @@ namespace Presentation
 
             builder.Services.AddAuthorization();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGenWithAuth();
             builder.Services.InjectApplication(builder.Configuration);
             builder.Services.InjectInfrastructure(builder.Configuration);
             var app = builder.Build();
@@ -23,11 +26,11 @@ namespace Presentation
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapCurrencyEndpoints();
+            app.MapAuthEndpoints();
 
             app.Run();
         }
