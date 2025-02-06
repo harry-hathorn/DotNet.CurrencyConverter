@@ -29,7 +29,6 @@ namespace Application.Currencies.FindLatestCurrency
             if (exchangeProvider == null)
             {
                 _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
-
                 return Result.Failure<FindLatestCurrencyResultDto>(Error.SystemError);
             }
             var result = await exchangeProvider.FindLatestAsync(currencyCodeResult.Value);
