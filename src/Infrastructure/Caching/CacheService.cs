@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using Application.Abstractions;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
-using System.Threading;
 
 namespace Infrastructure.Caching
 {
-    internal class CacheService
+    internal class CacheService : ICacheService
     {
 
         private readonly IDistributedCache _cache;

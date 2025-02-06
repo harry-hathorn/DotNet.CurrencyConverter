@@ -1,4 +1,5 @@
-﻿using Application.Currencies.FindLatestCurrency.Dtos;
+﻿using Application.Abstractions;
+using Application.Currencies.FindLatestCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using MediatR;
@@ -10,10 +11,13 @@ namespace Application.Currencies.FindLatestCurrency
     {
         private readonly IExchangeProviderFactory _exchangeFactory;
         private readonly ILogger<FindLatestCurrencyHandler> _logger;
+        private readonly ICacheService _cacheService;
 
         public FindLatestCurrencyHandler(IExchangeProviderFactory exchangeFactory,
-            ILogger<FindLatestCurrencyHandler> logger)
+            ILogger<FindLatestCurrencyHandler> logger,
+            ICacheService cacheService)
         {
+            _cacheService = cacheService;
             _exchangeFactory = exchangeFactory;
             _logger = logger;
         }
@@ -25,18 +29,24 @@ namespace Application.Currencies.FindLatestCurrency
             {
                 return Result.Failure<FindLatestCurrencyResultDto>(currencyCodeResult.Error);
             }
+            var currencyCode = currencyCodeResult.Value;
             var exchangeProvider = _exchangeFactory.GetProvider(ExchangeProviderType.Frankfurter);
             if (exchangeProvider == null)
             {
                 _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
                 return Result.Failure<FindLatestCurrencyResultDto>(Error.SystemError);
             }
-            var result = await exchangeProvider.FindLatestAsync(currencyCodeResult.Value);
-            if (result.IsFailure)
+            var cacheKey = $"latest-{currencyCode.Value}";
+            var currencySnapShot = await _cacheService.GetAsync<CurrencySnapshot>(cacheKey, cancellationToken);
+            if (currencySnapShot == null)
             {
-                return Result.Failure<FindLatestCurrencyResultDto>(result.Error);
+                var result = await exchangeProvider.FindLatestAsync(currencyCode);
+                if (result.IsFailure)
+                {
+                    return Result.Failure<FindLatestCurrencyResultDto>(result.Error);
+                }
+                currencySnapShot = result.Value;
             }
-            var currencySnapShot = result.Value;
             return new FindLatestCurrencyResultDto(currencySnapShot.Code.Value,
                 currencySnapShot.DateCaptured,
                 currencySnapShot.ExchangeRates

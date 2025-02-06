@@ -1,4 +1,5 @@
-﻿using Application.Currencies.FindLatestCurrency;
+﻿using Application.Abstractions;
+using Application.Currencies.FindLatestCurrency;
 using Domain.Common;
 using Domain.Currencies;
 using FluentAssertions;
@@ -11,12 +12,15 @@ namespace UnitTests.Application
     {
         private readonly Mock<IExchangeProvider> _exchangeProviderMock;
         private readonly Mock<IExchangeProviderFactory> _factoryMock;
+        private readonly Mock<ICacheService> _cacheServiceMock;
         private readonly FindLatestCurrencyHandler _handler;
 
         public FindLatestCurrencyShould()
         {
             _factoryMock = new Mock<IExchangeProviderFactory>();
             _exchangeProviderMock = new Mock<IExchangeProvider>();
+            _cacheServiceMock = new Mock<ICacheService>();
+
             _factoryMock.Setup(x => x.GetProvider(It.IsAny<ExchangeProviderType>()))
                 .Returns(_exchangeProviderMock.Object);
 
@@ -31,7 +35,15 @@ namespace UnitTests.Application
                 .ReturnsAsync(snapShot);
 
             _handler = new FindLatestCurrencyHandler(_factoryMock.Object,
-                new Mock<ILogger<FindLatestCurrencyHandler>>().Object);
+                new Mock<ILogger<FindLatestCurrencyHandler>>().Object,
+                _cacheServiceMock.Object);
+        }
+
+        [Fact]
+        public async Task CallCache()
+        {
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            _cacheServiceMock.Verify(x => x.GetAsync<CurrencySnapshot>($"latest-GBP", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
