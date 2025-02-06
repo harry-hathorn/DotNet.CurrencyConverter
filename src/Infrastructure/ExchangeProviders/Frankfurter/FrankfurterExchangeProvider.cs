@@ -50,14 +50,23 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"https://api.frankfurter.dev/v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
-
-                var expected = response.Rates.Select(rate => CurrencySnapshot.Create(
-                  "USD",
-                  rate.Key,
-                  rate.Value.Select(r => (r.Key, r.Value)).ToList()
-              ).Value).ToList();
-
-                return expected;
+                List<CurrencySnapshot> result = new List<CurrencySnapshot>();
+                foreach (var rate in response.Rates)
+                {
+                    var snapShotResult =
+                    CurrencySnapshot.Create(
+                     currencyCode.Value,
+                     rate.Key,
+                     rate.Value.Select(r => (r.Key, r.Value)).ToList());
+                    if (snapShotResult.IsSuccess)
+                    {
+                        result.Add(snapShotResult.Value);
+                    }
+                    else { 
+                    
+                    }
+                }
+                return result;
             }
             catch (JsonException exception)
             {

@@ -4,6 +4,7 @@ namespace Domain.Currencies
 {
     public record CurrencyCode
     {
+        protected internal CurrencyCode() { }
         internal static Error InvalidCodeError = new Error(ErrorCode.BadInput, "The currency code is invalid");
 
         public static readonly CurrencyCode Usd = new("USD", "United States Dollar");
@@ -37,6 +38,8 @@ namespace Domain.Currencies
         public static readonly CurrencyCode Thb = new("THB", "Thai Baht");
         public static readonly CurrencyCode Try = new("TRY", "Turkish Lira");
         public static readonly CurrencyCode Zar = new("ZAR", "South African Rand");
+        public static readonly CurrencyCode Hrk = new("HRK", "Croatian Kuna");
+        public static readonly CurrencyCode Rub = new("RUB", "Russian Ruble");
 
         private CurrencyCode(string code, string description)
         {
@@ -85,7 +88,9 @@ namespace Domain.Currencies
             Sgd,
             Thb,
             Try,
-            Zar
+            Zar,
+            Hrk,
+            Rub
         };
     }
 }

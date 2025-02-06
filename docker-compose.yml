@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  currency.converter.api:
+    image: ${DOCKER_REGISTRY-}currencyconverter
+    container_name: Currency.Converter.Api
+    build:
+      context: .
+      dockerfile: src/Presentation/Dockerfile
+
+  currency.converter.redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'

@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions;
 using Application.Currencies.SearchCurrency;
+using Application.Currencies.SearchCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using FluentAssertions;
@@ -116,17 +117,17 @@ namespace UnitTests.Application
 
             history.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
             history.ExchangeRates.Should().BeEquivalentTo(
-                new List<(string Code, decimal Amount)>
+                new List<SearchCurrencyAmountDto>
                 {
-                    ("GBP", 1.6629m),
-                    ("EUR", 12.6629m)
+                   new SearchCurrencyAmountDto("GBP", 1.6629m),
+                     new SearchCurrencyAmountDto("EUR", 12.6629m)
                 });
             history2.DateCaptured.Should().Be(new DateTime(2001, 12, 13));
             history2.ExchangeRates.Should().BeEquivalentTo(
-                new List<(string Code, decimal Amount)>
+                new List<SearchCurrencyAmountDto>
                 {
-                    ("GBP", 3.1m),
-                    ("EUR", 15)
+                    new SearchCurrencyAmountDto("GBP", 3.1m),
+                    new SearchCurrencyAmountDto("EUR", 15)
                 });
         }
 
@@ -150,10 +151,10 @@ namespace UnitTests.Application
 
             history.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
             history.ExchangeRates.Should().BeEquivalentTo(
-                new List<(string Code, decimal Amount)>
+              new List<SearchCurrencyAmountDto>
                 {
-                    ("GBP", 1.6629m),
-                    ("EUR", 12.6629m)
+                     new SearchCurrencyAmountDto("GBP", 1.6629m),
+                     new SearchCurrencyAmountDto("EUR", 12.6629m)
                 });
         }
 

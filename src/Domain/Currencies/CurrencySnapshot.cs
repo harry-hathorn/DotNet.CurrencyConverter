@@ -4,6 +4,7 @@ namespace Domain.Currencies
 {
     public record CurrencySnapshot
     {
+        protected internal CurrencySnapshot() { }
         private static Error AmountCannotBeLessThanZeroError = new Error(ErrorCode.BadInput, "The amount cannot be less than zero");
         private static Error IlligalConversionError = new Error(ErrorCode.BadInput, "The requested currency code is not allowed");
 
@@ -45,7 +46,6 @@ namespace Domain.Currencies
                 Result = CurrencyCode.FromCode(x.Code),
                 Original = x
             }).ToList();
-
             if (exchangeResults.Any(x => x.Result.IsFailure))
             {
                 return Result.Failure<CurrencySnapshot>(CurrencyCode.InvalidCodeError);

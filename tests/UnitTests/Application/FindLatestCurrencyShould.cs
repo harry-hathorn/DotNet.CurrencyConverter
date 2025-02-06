@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions;
 using Application.Currencies.FindLatestCurrency;
+using Application.Currencies.FindLatestCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using FluentAssertions;
@@ -104,10 +105,10 @@ namespace UnitTests.Application
             dto.Code.Should().Be("USD");
             dto.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
             dto.ExchangeRates.Should().BeEquivalentTo(
-                new List<(string Code, decimal Amount)>
+                new List<FindLatestCurrencyExchangeRateDto>
                 {
-                    ("GBP", 1.6629m),
-                    ("EUR", 12.6629m)
+                    new FindLatestCurrencyExchangeRateDto("GBP", 1.6629m),
+                    new FindLatestCurrencyExchangeRateDto("EUR", 12.6629m)
                 });
         }
 
@@ -129,10 +130,10 @@ namespace UnitTests.Application
             dto.Code.Should().Be("USD");
             dto.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
             dto.ExchangeRates.Should().BeEquivalentTo(
-                new List<(string Code, decimal Amount)>
+                new List<FindLatestCurrencyExchangeRateDto>
                 {
-                    ("GBP", 1.6629m),
-                    ("EUR", 12.6629m)
+                    new FindLatestCurrencyExchangeRateDto("GBP", 1.6629m),
+                    new FindLatestCurrencyExchangeRateDto("EUR", 12.6629m)
                 });
         }
 

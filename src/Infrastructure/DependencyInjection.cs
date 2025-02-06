@@ -23,20 +23,7 @@ namespace Infrastructure
 
         private static void AddCaching(this IServiceCollection services, IConfiguration configuration)
         {
-            string connectionString = configuration.GetConnectionString("Cache") ??
-                           throw new ArgumentNullException(nameof(configuration));
-
-            services.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = connectionString;
-                options.ConfigurationOptions = new ConfigurationOptions
-                {
-                    AbortOnConnectFail = false,
-                    ConnectTimeout = 3000,
-                    SyncTimeout = 3000
-                };
-            });
-
+            services.AddStackExchangeRedisCache(options =>  options.Configuration = configuration.GetConnectionString("Cache"));
             services.AddSingleton<ICacheService, CacheService>();
         }
 

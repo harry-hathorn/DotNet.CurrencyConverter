@@ -49,8 +49,10 @@ namespace Application.Currencies.SearchCurrency
                 await _cacheService.SetAsync(cacheKey, currencySnapShot, cancellationToken);
             }
             return new SearchCurrencyDto(currencyCode.Value,
-                currencySnapShot.Select(x => 
-                    (x.DateCaptured, x.ExchangeRates.Select(y => (y.Code.Value, y.Amount)).ToList()))
+                currencySnapShot.Select(x =>
+                    new SearchCurrencyDateCapturedDto(x.DateCaptured,
+                    x.ExchangeRates.Select(y => new SearchCurrencyAmountDto(y.Code.Value, y.Amount))
+                    .ToList()))
                 .ToList());
         }
     }

@@ -4,7 +4,9 @@ namespace Infrastructure.ExchangeProviders.Frankfurter.Models
 {
     public class FrankfurterSearchResponse
     {
-        public double Amount { get; set; }
+        [JsonPropertyName("amount")]
+        public decimal Amount { get; set; }
+        [JsonPropertyName("base")]
         public string Base { get; set; }
 
         [JsonPropertyName("start_date")]
@@ -12,6 +14,8 @@ namespace Infrastructure.ExchangeProviders.Frankfurter.Models
 
         [JsonPropertyName("end_date")]
         public DateTime EndDate { get; set; }
+
+        [JsonPropertyName("rates")]
         public Dictionary<DateTime, Dictionary<string, decimal>> Rates { get; set; }
     }
 }

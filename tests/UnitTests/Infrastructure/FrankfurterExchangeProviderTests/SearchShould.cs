@@ -126,6 +126,62 @@ namespace UnitTests.Infrastructure.FrankfurterExchangeProviderTests
         }
 
         [Fact]
+        public async Task SkipFailedCurrencies()
+        {
+            var rates = new Dictionary<DateTime, Dictionary<string, decimal>>
+            {
+                { new DateTime(2021, 5, 1), new Dictionary<string, decimal> { { "EUR", 0.83m } } },
+                { new DateTime(2021, 5, 2), new Dictionary<string, decimal> { { "EUR", 0.84m }, { "NAN", 0.73m } } },
+                { new DateTime(2021, 5, 3), new Dictionary<string, decimal> { { "EUR", 0.85m } } },
+                { new DateTime(2021, 5, 4), new Dictionary<string, decimal> { { "EUR", 0.86m } } },
+                { new DateTime(2021, 5, 5), new Dictionary<string, decimal> { { "EUR", 0.87m } } }
+            };
+            var expected = new List<CurrencySnapshot>
+            {
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 1), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.83m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 3), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.85m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 4), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.86m)
+                }).Value,
+                CurrencySnapshot.Create("USD", new DateTime(2021, 5, 5), new List<(string Code, decimal Amount)>
+                {
+                    ("EUR", 0.87m)
+                }).Value
+            };
+
+            var frankfurterResponse = new FrankfurterSearchResponse()
+            {
+                Amount = 100,
+                Base = "USD",
+                StartDate = new DateTime(2021, 5, 1),
+                EndDate = new DateTime(2021, 5, 15),
+                Rates = rates
+            };
+
+            var httpResponse = new HttpResponseMessage()
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(frankfurterResponse))
+            };
+
+            _mockHttpMessageHandler.Protected().Setup<Task<HttpResponseMessage>>("SendAsync",
+                   ItExpr.IsAny<HttpRequestMessage>(),
+                   ItExpr.IsAny<CancellationToken>()
+               ).ReturnsAsync(httpResponse);
+
+            var result = await _exchangeProvider.SearchAsync(CurrencyCode.Usd, new DateTime(2021, 5, 1), new DateTime(2021, 5, 5));
+            var snapShots = result.Value;
+            result.IsSuccess.Should().BeTrue();
+            snapShots.Should().BeEquivalentTo(expected, options => options.WithStrictOrdering());
+        }
+
+        [Fact]
         public async Task ReturnFailureForInvalidJson()
         {
             var httpResponse = new HttpResponseMessage()

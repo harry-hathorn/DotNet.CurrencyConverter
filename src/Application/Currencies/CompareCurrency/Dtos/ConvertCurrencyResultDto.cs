@@ -2,6 +2,6 @@
 {
     public record ConvertCurrencyResultDto(
         DateTime DateCaptured,
-       string Code,
-       decimal Amount);
+        string Code,
+        decimal Amount);
 }

@@ -1,6 +1,7 @@
 ﻿namespace Application.Currencies.FindLatestCurrency.Dtos
 {
+    public record FindLatestCurrencyExchangeRateDto(string Code, decimal Amount);
     public record FindLatestCurrencyResultDto(string Code,
         DateTime DateCaptured,
-        List<(string Code, decimal Amount)> ExchangeRates);
+        List<FindLatestCurrencyExchangeRateDto> ExchangeRates);
 }

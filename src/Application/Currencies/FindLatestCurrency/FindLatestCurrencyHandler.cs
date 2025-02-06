@@ -51,7 +51,7 @@ namespace Application.Currencies.FindLatestCurrency
             return new FindLatestCurrencyResultDto(currencySnapShot.Code.Value,
                 currencySnapShot.DateCaptured,
                 currencySnapShot.ExchangeRates
-                    .Select(x => (x.Code.Value, x.Amount))
+                    .Select(x => new FindLatestCurrencyExchangeRateDto(x.Code.Value, x.Amount))
                 .ToList());
         }
     }
