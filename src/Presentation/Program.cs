@@ -1,8 +1,6 @@
 using Presentation.Currencies;
 using Application;
 using Infrastructure;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Presentation.Extensions;
 
 namespace Presentation
@@ -30,7 +28,6 @@ namespace Presentation
             app.UseAuthorization();
 
             app.MapCurrencyEndpoints();
-            app.MapAuthEndpoints();
 
             app.Run();
         }

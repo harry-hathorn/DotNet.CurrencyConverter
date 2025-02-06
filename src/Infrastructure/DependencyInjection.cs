@@ -3,7 +3,6 @@ using Domain.Currencies;
 using Infrastructure.Caching;
 using Infrastructure.ExchangeProviders;
 using Infrastructure.ExchangeProviders.Frankfurter;
-using Infrastructure.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +31,6 @@ namespace Infrastructure
 
         private static void AddAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton<ITokenProvider, TokenProvider>();
             services.AddAuthorization();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(o =>

@@ -3,7 +3,6 @@ using Application.Currencies.FindLatestCurrency;
 using Application.Currencies.SearchCurrency;
 using Domain.Common;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Presentation.Currencies;
 
