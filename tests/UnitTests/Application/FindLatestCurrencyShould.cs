@@ -1,11 +1,9 @@
 ﻿using Application.Currencies.FindLatestCurrency;
-using Castle.Core.Logging;
 using Domain.Common;
 using Domain.Currencies;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Xml.XPath;
 
 namespace UnitTests.Application
 {
@@ -21,6 +19,16 @@ namespace UnitTests.Application
             _exchangeProviderMock = new Mock<IExchangeProvider>();
             _factoryMock.Setup(x => x.GetProvider(It.IsAny<ExchangeProviderType>()))
                 .Returns(_exchangeProviderMock.Object);
+
+            var currencies = new List<(string Code, decimal Amount)>
+            {
+                ("GBP", 1.6629m),
+                ("EUR", 12.6629m)
+            };
+            var snapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies);
+
+            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>()))
+                .ReturnsAsync(snapShot);
 
             _handler = new FindLatestCurrencyHandler(_factoryMock.Object,
                 new Mock<ILogger<FindLatestCurrencyHandler>>().Object);
@@ -58,6 +66,22 @@ namespace UnitTests.Application
             await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
             _factoryMock.Verify(x => x.GetProvider(ExchangeProviderType.Frankfurter), Times.Once);
             _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp), Times.Once);
+        }
+
+        [Fact]
+        public async Task MapToDto()
+        {
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var dto = result.Value;
+            result.IsSuccess.Should().BeTrue();
+            dto.CurrencyCode.Should().Be("USD");
+            dto.DateCaptured.Should().Be(new DateTime(2001, 12, 12));
+            dto.ExchangeRates.Should().BeEquivalentTo(
+                new List<(string Code, decimal Amount)>
+                {
+                    ("GBP", 1.6629m),
+                    ("EUR", 12.6629m)
+                });
         }
     }
 }

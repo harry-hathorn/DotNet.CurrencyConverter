@@ -1,11 +1,12 @@
-﻿using Domain.Common;
+﻿using Application.Currencies.FindLatestCurrency.Dtos;
+using Domain.Common;
 using Domain.Currencies;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Currencies.FindLatestCurrency
 {
-    public class FindLatestCurrencyHandler : IRequestHandler<FindLatestCurrencyQuery, Result>
+    public class FindLatestCurrencyHandler : IRequestHandler<FindLatestCurrencyQuery, Result<FindLatestCurrencyResultDto>>
     {
         private readonly IExchangeProviderFactory _exchangeFactory;
         private readonly ILogger<FindLatestCurrencyHandler> _logger;
@@ -17,22 +18,27 @@ namespace Application.Currencies.FindLatestCurrency
             _logger = logger;
         }
 
-        public async Task<Result> Handle(FindLatestCurrencyQuery command, CancellationToken cancellationToken)
+        public async Task<Result<FindLatestCurrencyResultDto>> Handle(FindLatestCurrencyQuery command, CancellationToken cancellationToken)
         {
             var currencyCodeResult = CurrencyCode.FromCode(command.currencyCode);
             if (currencyCodeResult.IsFailure)
             {
-                return currencyCodeResult;
+                return Result.Failure<FindLatestCurrencyResultDto>(currencyCodeResult.Error);
             }
             var exchangeProvider = _exchangeFactory.GetProvider(ExchangeProviderType.Frankfurter);
             if (exchangeProvider == null)
             {
                 _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
-                return Result.Failure(Error.SystemError);
+
+                return Result.Failure<FindLatestCurrencyResultDto>(Error.SystemError);
             }
             var result = await exchangeProvider.FindLatestAsync(currencyCodeResult.Value);
-
-            return null;
+            var currencySnapShot = result.Value;
+            return new FindLatestCurrencyResultDto(currencySnapShot.Code.Value,
+                currencySnapShot.DateCaptured,
+                currencySnapShot.ExchangeRates
+                    .Select(x => (x.Code.Value, x.Amount))
+                .ToList());
         }
     }
 }
