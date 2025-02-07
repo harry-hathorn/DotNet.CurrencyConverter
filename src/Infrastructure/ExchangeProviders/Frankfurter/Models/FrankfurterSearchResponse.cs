@@ -2,7 +2,7 @@
 
 namespace Infrastructure.ExchangeProviders.Frankfurter.Models
 {
-    public class FrankfurterSearchResponse
+    internal class FrankfurterSearchResponse
     {
         [JsonPropertyName("amount")]
         public decimal Amount { get; set; }

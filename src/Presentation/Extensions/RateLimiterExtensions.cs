@@ -1,4 +1,5 @@
-﻿using System.Threading.RateLimiting;
+﻿using System.Security.Claims;
+using System.Threading.RateLimiting;
 
 namespace Presentation.Extensions
 {
@@ -10,9 +11,11 @@ namespace Presentation.Extensions
             services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-                options.AddPolicy(UserRatePolicy, httpContext =>
+                options.AddPolicy(UserRatePolicy, httpContext
+                    =>
                     RateLimitPartition.GetFixedWindowLimiter(
-                        partitionKey: httpContext.User.Identity?.Name?.ToString(),
+                        partitionKey: httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                      ?? "anonymous",
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 10,
