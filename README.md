@@ -10,6 +10,8 @@ The project is a currency converter API that allows users to search and convert 
 - **JWT Authentication**: Secures the API with JWT authentication.
 - **API Rate Limiter**: Prevents abuse by limiting the rate of API requests.
 - **Distributed Tracing with OpenTelemetry**: Provides distributed tracing capabilities using OpenTelemetry.
+- **Result pattern**: Uses the result pattern for clean error handling.
+- **Factory pattern**: Allows for easy extention for new kinds of currency providers.
 - **Structured Logging with Serilog**: Implements structured logging with Serilog for better log management and analysis.
 - **Correlated Visibility Across Entire Request Life**: Ensures correlated visibility across the entire request lifecycle.
 - **Unit Tests with 100% Coverage**: Achieves 100% unit test coverage to ensure code quality and reliability.
