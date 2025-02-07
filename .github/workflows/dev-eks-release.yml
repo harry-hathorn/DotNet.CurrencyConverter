@@ -34,7 +34,7 @@ jobs:
         docker push 000000000000.dkr.ecr.eu-west-1.amazonaws.com/currencyconverter-api-dev:latest
 
     - name: Update kube config
-      run: aws eks update-kubeconfig --name kepler-cluster
+      run: aws eks update-kubeconfig --name currencyconverter-cluster
     
     - name: Retarts deployment
-      run: kubectl rollout restart deployment  kepler-api-deployment-dev -n currencyconverter-dev
+      run: kubectl rollout restart deployment currencyconverter-dev-deployment -n currencyconverter-dev

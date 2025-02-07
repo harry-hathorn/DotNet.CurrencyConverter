@@ -7,9 +7,9 @@ The following table provides the details for setting up Kubernetes deployments f
 
 | Environment | Namespace                | Deployment Name                          | Environment Variables                        |
 |-------------|---------------------------|------------------------------------------|----------------------------------------------|
-| Development | currencyconverter-dev     | currencyconverter-api-dev                | `Authentication__JwtSecret={kubernets-secret}`, `ASPNETCORE_ENVIRONMENT=DEV` |
-| Test        | currencyconverter-test    | currencyconverter-test-deployment        | `Authentication__JwtSecret={kubernets-secret}`, `ASPNETCORE_ENVIRONMENT=Test` |
-| Production  | currencyconverter         | currencyconverter-production-deployment  | `Authentication__JwtSecret={kubernets-secret}`, `ASPNETCORE_ENVIRONMENT=Production` |
+| Development | currencyconverter-dev     | currencyconverter-dev-deployment         | `Authentication__JwtSecret={kubernetes-secret}`, `ASPNETCORE_ENVIRONMENT=DEV` |
+| Test        | currencyconverter-test    | currencyconverter-test-deployment        | `Authentication__JwtSecret={kubernetes-secret}`, `ASPNETCORE_ENVIRONMENT=Test` |
+| Production  | currencyconverter         | currencyconverter-production-deployment  | `Authentication__JwtSecret={kubernetes-secret}`, `ASPNETCORE_ENVIRONMENT=Production` |
 
 ### Development JWT Token
 
@@ -45,7 +45,7 @@ Note that the expiration exp, iat, nbf should be changed to the current epoch un
 #### JWT Token Signature
 
 The signature is created using the following:
-```
+```typescript
 HMACSHA256(
   base64UrlEncode(header) + "." +
   base64UrlEncode(payload),
