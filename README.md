@@ -19,6 +19,7 @@ The project is a currency converter API that allows users to search and convert 
 - **GitHub Actions for Complete CI/CD**: Configures complete CI/CD pipelines for development, test, and production environments, targeting AWS Kubernetes.
 - **API Versioning**: Supports API versioning to manage changes and backward compatibility.
 - **Support for Horizontal Scaling**: The project uses Docker with the ability easily spin up new instances.
+- **Support for test result generation**: This project has the necesary libraries to generate unit test coverage reports.
 
 ## Test Results
 
