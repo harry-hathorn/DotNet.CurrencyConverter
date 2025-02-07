@@ -1,6 +1,6 @@
 # CurrencyConverter
-
-## Development JWT Token
+## Setup Instructions
+### Development JWT Token
 
 When running the application locally, you can use the following JWT token for authorization as a bearer token:
 ```
@@ -9,15 +9,16 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8
 
 You can insert the above sample into https://jwt.io/ and adjust the expiration time and insert the JWT secret for local development.
 
-### JWT Token Header
+#### JWT Token Header
 ```json
 {
   "alg": "HS256",
   "typ": "JWT"
 }
 ```
-### JWT Token Payload
-#### Note that the expiration time should be changed to up to an hour from the current UTC time
+#### JWT Token Payload
+
+Note that the expiration exp, iat, nbf should be changed to the current epoch unix timestamp, and remains valid for an hour.
 ```json
 {
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": "781aafff-f395-41c7-8092-9d012f8f8a0f",
@@ -29,7 +30,7 @@ You can insert the above sample into https://jwt.io/ and adjust the expiration t
   "nbf": 1738870455
 }
 ```
-### JWT Token Signature
+#### JWT Token Signature
 
 The signature is created using the following:
 ```

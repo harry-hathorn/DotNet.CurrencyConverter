@@ -7,6 +7,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Presentation.Middleware;
 using System.Security.Claims;
+using Asp.Versioning.Builder;
+using Asp.Versioning;
 
 namespace Presentation
 {
@@ -39,7 +41,30 @@ namespace Presentation
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
 
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1);
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            })
+            .AddApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'V";
+                options.SubstituteApiVersionInUrl = true;
+            });
+
             var app = builder.Build();
+
+            ApiVersionSet apiVersionSet = app.NewApiVersionSet()
+                .HasApiVersion(new ApiVersion(1))
+                .ReportApiVersions()
+                .Build();
+
+            RouteGroupBuilder versionedGroup = app
+                .MapGroup("api/v{apiVersion:apiVersion}")
+                .WithApiVersionSet(apiVersionSet);
+
+            versionedGroup.MapCurrencyEndpoints();
+      
 
             if (app.Environment.IsDevelopment())
             {
@@ -63,7 +88,6 @@ namespace Presentation
                     diagnosticContext.Set("JwtToken", AccessToken);
                 };
             });
-            app.MapCurrencyEndpoints();
 
             app.Run();
         }
