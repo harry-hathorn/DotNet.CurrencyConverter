@@ -19,6 +19,8 @@ namespace Presentation
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));
+            builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+            builder.Configuration.AddEnvironmentVariables();
             builder.Services.AddAuthorization();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerWithAuth();

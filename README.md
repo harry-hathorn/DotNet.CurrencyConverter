@@ -1,5 +1,16 @@
 # CurrencyConverter
 ## Setup Instructions
+
+### Kubernetes Setup Instructions
+
+The following table provides the details for setting up Kubernetes deployments for different environments. Ensure that the specified environment variables are set for each deployment.
+
+| Environment | Namespace                | Deployment Name                          | Environment Variables                        |
+|-------------|---------------------------|------------------------------------------|----------------------------------------------|
+| Development | currencyconverter-dev     | currencyconverter-api-dev                | `Authentication__JwtSecret={kubernets-secret}`, `ASPNETCORE_ENVIRONMENT=DEV` |
+| Test        | currencyconverter-test    | currencyconverter-test-deployment        | `Authentication__JwtSecret={kubernets-secret}`, `ASPNETCORE_ENVIRONMENT=Test` |
+| Production  | currencyconverter         | currencyconverter-production-deployment  | `Authentication__JwtSecret={kubernets-secret}`, `ASPNETCORE_ENVIRONMENT=Production` |
+
 ### Development JWT Token
 
 When running the application locally, you can use the following JWT token for authorization as a bearer token:
@@ -17,6 +28,7 @@ You can insert the above sample into https://jwt.io/ and adjust the expiration t
 }
 ```
 #### JWT Token Payload
+
 
 Note that the expiration exp, iat, nbf should be changed to the current epoch unix timestamp, and remains valid for an hour.
 ```json
@@ -40,3 +52,5 @@ HMACSHA256(
   "69fac991-79d0-4cb5-b552-3f23661aa127"
 )
 ```
+
+## Assumptions Made

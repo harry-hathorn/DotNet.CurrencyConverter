@@ -1,0 +1,27 @@
+name: Run Unit Tests
+
+on:
+  push:
+    branches: [ "change-*", "development", "test", "production" ]
+
+jobs:
+  run_tests:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Execute unit tests
+      run: dotnet test tests/UnitTests/UnitTests.csproj
