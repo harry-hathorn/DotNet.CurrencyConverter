@@ -84,7 +84,7 @@ namespace IntegrationTests.Currencies
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
-        [Fact]
+        [Fact, TestPriority(1)]
         public async Task ReturnResults()
         {
             var expected = new SearchCurrencyDto("USD",

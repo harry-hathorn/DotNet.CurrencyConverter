@@ -62,9 +62,6 @@ namespace Infrastructure.ExchangeProviders.Frankfurter
                     {
                         result.Add(snapShotResult.Value);
                     }
-                    else { 
-                    
-                    }
                 }
                 return result;
             }

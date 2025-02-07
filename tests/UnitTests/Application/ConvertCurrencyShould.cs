@@ -88,6 +88,23 @@ namespace UnitTests.Application
             result.Error.Message.Should().Be("The currency code is invalid");
         }
 
+        [Fact]
+        public async Task Fail_IfNotFoundTargetCurrency()
+        {
+            var currencies = new List<(string Code, decimal Amount)>
+            {
+                ("AUD", 1.6629m),
+                ("BGN", 1.9558m),
+            };
+            var currencySnapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies).Value;
+            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>()))
+            .ReturnsAsync(currencySnapShot);
+
+            var result = await _handler.Handle(new ConvertCurrencyQuery("USD",  1, "GBP"), default);
+            result.IsSuccess.Should().BeFalse();
+            result.Error.Should().Be(Error.NotFound);
+        }
+
         [Theory]
         [InlineData("AUD", 1, 1.6629)]
         [InlineData("BGN", 1, 1.9558)]
