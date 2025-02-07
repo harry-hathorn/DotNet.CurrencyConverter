@@ -25,11 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\test-eks-release.yml = .github\workflows\test-eks-release.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "..\tests\IntegrationTests\IntegrationTests.csproj", "{66C5A951-0762-45EB-A5F5-44780E04BF45}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4EF59F79-D2D7-45E5-94E6-C4DDA724AA76}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4702F955-5DF9-4B66-A69C-C261354FD712}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{6F3B67DC-FD9F-4C99-B81B-CC095FC4067D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,10 +61,10 @@ Global
 		{ADD5AF21-A432-4B22-BA2A-479AE85F98FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADD5AF21-A432-4B22-BA2A-479AE85F98FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADD5AF21-A432-4B22-BA2A-479AE85F98FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{66C5A951-0762-45EB-A5F5-44780E04BF45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{66C5A951-0762-45EB-A5F5-44780E04BF45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{66C5A951-0762-45EB-A5F5-44780E04BF45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{66C5A951-0762-45EB-A5F5-44780E04BF45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F3B67DC-FD9F-4C99-B81B-CC095FC4067D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F3B67DC-FD9F-4C99-B81B-CC095FC4067D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F3B67DC-FD9F-4C99-B81B-CC095FC4067D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F3B67DC-FD9F-4C99-B81B-CC095FC4067D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -75,6 +75,6 @@ Global
 		{A451CC21-3A6C-44E1-A81C-ACCE6E1A28C9} = {4EF59F79-D2D7-45E5-94E6-C4DDA724AA76}
 		{76DF42FB-9364-4962-89A7-37A67D2113E9} = {4EF59F79-D2D7-45E5-94E6-C4DDA724AA76}
 		{2D271720-8163-4519-9BA1-27289AEEC14C} = {4EF59F79-D2D7-45E5-94E6-C4DDA724AA76}
-		{66C5A951-0762-45EB-A5F5-44780E04BF45} = {4702F955-5DF9-4B66-A69C-C261354FD712}
+		{6F3B67DC-FD9F-4C99-B81B-CC095FC4067D} = {4702F955-5DF9-4B66-A69C-C261354FD712}
 	EndGlobalSection
 EndGlobal
