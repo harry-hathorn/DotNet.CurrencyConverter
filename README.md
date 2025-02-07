@@ -22,7 +22,8 @@ The project is a currency converter API that allows users to search and convert 
 
 You can view the test results report on GitHub Pages:
 
-[![Test Results]](https://harry-hathorn.github.io/DotNet.CurrencyConverter.TestResults/)
+https://harry-hathorn.github.io/DotNet.CurrencyConverter.TestResults/
+
 ![Test Results Report](https://github.com/harry-hathorn/CurrencyConverter/blob/main/Test%20Coverage.png)
 
 
@@ -110,7 +111,7 @@ These include:
 ## Possible Future Enhancements
 
 - **Support for Mass Transit and Message broker for integration with additional microservices**
-- **Inclusion of a Database for richer features and user experiences
+- **Inclusion of a Database for richer features and user experiences**
 - **Inclusion of a domain aggregates for enhanced functionlity**
 - **Outbox patter for domain events**
 - **Integration with an AI Provider to give richer user experience for further operations around currencies**
