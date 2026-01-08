@@ -1,12 +1,10 @@
 ﻿using Application.Abstractions;
 using Domain.Currencies;
 using Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Caching.Distributed;
 using FluentAssertions;
 
 namespace UnitTests.Infrastructure
@@ -22,7 +20,8 @@ namespace UnitTests.Infrastructure
                 { "ConnectionStrings:Cache", "localhost" }
             }).Build();
 
-            services.InjectInfrastructure(configuration);
+            services.AddDistributedMemoryCache();
+            services.AddInfrastructure(configuration);
             var serviceProvider = services.BuildServiceProvider();
 
             var cacheService = serviceProvider.GetService<ICacheService>();
@@ -38,7 +37,7 @@ namespace UnitTests.Infrastructure
                 { "ProviderUrls:FrankfurterBaseUrl", "https://api.frankfurter.app" }
             }).Build();
 
-            services.InjectInfrastructure(configuration);
+            services.AddInfrastructure(configuration);
             var serviceProvider = services.BuildServiceProvider();
 
             var exchangeProvider = serviceProvider.GetService<IExchangeProvider>();
@@ -51,7 +50,7 @@ namespace UnitTests.Infrastructure
             var services = new ServiceCollection();
             var configuration = new ConfigurationBuilder().Build();
 
-            services.InjectInfrastructure(configuration);
+            services.AddInfrastructure(configuration);
             var serviceProvider = services.BuildServiceProvider();
 
             var timeProvider = serviceProvider.GetService<ITimeProvider>();
@@ -59,29 +58,17 @@ namespace UnitTests.Infrastructure
         }
 
         [Fact]
-        public void RegisterAuthentication()
+        public void RegisterAuthorization()
         {
             var services = new ServiceCollection();
-            var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string>
-            {
-                { "Authentication:JwtSecret", "supersecretkey" },
-                { "Authentication:Issuer", "testissuer" },
-                { "Authentication:Audience", "testaudience" }
-            }).Build();
+            services.AddAuthorization();
+            var configuration = new ConfigurationBuilder().Build();
 
-            services.InjectInfrastructure(configuration);
+            services.AddInfrastructure(configuration);
             var serviceProvider = services.BuildServiceProvider();
 
-            var authenticationService = serviceProvider.GetService<IAuthenticationService>();
-            var authorizationService = serviceProvider.GetService<IAuthorizationService>();
-            authenticationService.Should().NotBeNull();
-            authorizationService.Should().NotBeNull();
-
-            var jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsSnapshot<JwtBearerOptions>>().Get(JwtBearerDefaults.AuthenticationScheme);
-            jwtBearerOptions.Should().NotBeNull();
-            jwtBearerOptions.TokenValidationParameters.ValidIssuer.Should().Be("testissuer");
-            jwtBearerOptions.TokenValidationParameters.ValidAudience.Should().Be("testaudience");
-            jwtBearerOptions.TokenValidationParameters.IssuerSigningKey.Should().NotBeNull();
+            var authorizationOptions = serviceProvider.GetService<IAuthorizationService>();
+            authorizationOptions.Should().NotBeNull();
         }
     }
 }

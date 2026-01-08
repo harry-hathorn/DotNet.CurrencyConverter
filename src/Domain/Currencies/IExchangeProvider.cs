@@ -1,11 +1,10 @@
-﻿using Domain.Common;
+using Domain.Common;
 
-namespace Domain.Currencies
+namespace Domain.Currencies;
+
+public interface IExchangeProvider
 {
-    public interface IExchangeProvider
-    {
-        public ExchangeProviderType ProviderType { get; }
-        public Task<Result<CurrencySnapshot>> FindLatestAsync(CurrencyCode currencyCode);
-        Task<Result<List<CurrencySnapshot>>> SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate);
-    }
+    ExchangeProviderType ProviderType { get; }
+    Task<Result<CurrencySnapshot>> FindLatestAsync(CurrencyCode currencyCode, CancellationToken cancellationToken = default);
+    Task<Result<List<CurrencySnapshot>>> SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
 }

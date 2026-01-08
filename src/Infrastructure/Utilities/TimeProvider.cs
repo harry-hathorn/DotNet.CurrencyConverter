@@ -1,12 +1,8 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 
-namespace Infrastructure.Utilities
+namespace Infrastructure.Utilities;
+
+public class TimeProvider : ITimeProvider
 {
-    public class TimeProvider : ITimeProvider
-    {
-        public DateTime UtcNow()
-        {
-            return DateTime.UtcNow;
-        }
-    }
+    public DateTime UtcNow() => DateTime.UtcNow;
 }

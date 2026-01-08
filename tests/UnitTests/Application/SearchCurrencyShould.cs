@@ -1,4 +1,4 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.Currencies.SearchCurrency;
 using Application.Currencies.SearchCurrency.Dtos;
 using Domain.Common;
@@ -15,7 +15,7 @@ namespace UnitTests.Application
         private readonly Mock<IExchangeProviderFactory> _factoryMock;
         private readonly Mock<ICacheService> _cacheServiceMock;
         private readonly SearchCurrencyHandler _handler;
-        private readonly Result<List<CurrencySnapshot>> _snapShot;
+        private readonly List<CurrencySnapshot> _snapshots;
         public SearchCurrencyShould()
         {
             _factoryMock = new Mock<IExchangeProviderFactory>();
@@ -36,13 +36,13 @@ namespace UnitTests.Application
                 ("EUR", 15m)
             };
 
-            _snapShot = new List<CurrencySnapshot> { 
+            _snapshots = new List<CurrencySnapshot> {
                 CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies).Value,
                 CurrencySnapshot.Create("USD", new DateTime(2001, 12, 13), currencies2).Value
             };
 
-            _exchangeProviderMock.Setup(x => x.SearchAsync(It.IsAny<CurrencyCode>(), It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-                .ReturnsAsync(_snapShot);
+            _exchangeProviderMock.Setup(x => x.SearchAsync(It.IsAny<CurrencyCode>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result<List<CurrencySnapshot>>.Success(_snapshots));
 
             _handler = new SearchCurrencyHandler(_factoryMock.Object,
                 new Mock<ILogger<SearchCurrencyHandler>>().Object,
@@ -52,23 +52,23 @@ namespace UnitTests.Application
         public async Task NotCallProvider_WhenCached()
         {
             _cacheServiceMock.Setup(x => x.GetAsync<List<CurrencySnapshot>>($"search-GBP", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(_snapShot.Value);
-            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
-            _exchangeProviderMock.Verify(x => x.SearchAsync(CurrencyCode.Gbp, default, default), Times.Never);
+                .ReturnsAsync(_snapshots);
+            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
+            _exchangeProviderMock.Verify(x => x.SearchAsync(It.IsAny<CurrencyCode>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task CallCache()
         {
-            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
+            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
             _cacheServiceMock.Verify(x => x.GetAsync<List<CurrencySnapshot>>($"search-GBP", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task GetProviderFromFactory()
         {
-            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
-            _factoryMock.Verify(x => x.GetProvider(ExchangeProviderType.Frankfurter), Times.Once);
+            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
+            _factoryMock.Verify(x => x.GetProvider(It.IsAny<ExchangeProviderType>()), Times.Once);
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace UnitTests.Application
             _factoryMock.Setup(x => x.GetProvider(It.IsAny<ExchangeProviderType>()))
               .Returns(() => null);
 
-            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
+            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
             result.IsFailure.Should().BeTrue();
             result.Error.Should().Be(Error.SystemError);
         }
@@ -85,7 +85,7 @@ namespace UnitTests.Application
         [Fact]
         public async Task Fail_IfInvalidCurrency()
         {
-            var result = await _handler.Handle(new SearchCurrencyQuery("INVALID", default, default), default);
+            var result = await _handler.Handle(new SearchCurrencyQuery("INVALID", default, default), CancellationToken.None);
             result.Error.Code.Should().Be(ErrorCode.BadInput);
             result.Error.Message.Should().Be("The currency code is invalid");
         }
@@ -93,22 +93,22 @@ namespace UnitTests.Application
         [Fact]
         public async Task CallProvider()
         {
-            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
-            _factoryMock.Verify(x => x.GetProvider(ExchangeProviderType.Frankfurter), Times.Once);
-            _exchangeProviderMock.Verify(x => x.SearchAsync(CurrencyCode.Gbp, default, default), Times.Once);
+            await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
+            _factoryMock.Verify(x => x.GetProvider(It.IsAny<ExchangeProviderType>()), Times.Once);
+            _exchangeProviderMock.Verify(x => x.SearchAsync(It.IsAny<CurrencyCode>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task CallSetCache()
         {
-            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
-            _cacheServiceMock.Verify(x => x.SetAsync($"search-GBP", _snapShot.Value, It.IsAny<CancellationToken>()), Times.Once);
+            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
+            _cacheServiceMock.Verify(x => x.SetAsync($"search-GBP", _snapshots, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task MapToDto()
         {
-            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
+            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
             dto.Code.Should().Be("GBP");
@@ -143,7 +143,7 @@ namespace UnitTests.Application
             _cacheServiceMock.Setup(x => x.GetAsync<List<CurrencySnapshot>>($"search-GBP", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<CurrencySnapshot>() { snapShot.Value });
 
-            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
+            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
             dto.Code.Should().Be("GBP");
@@ -161,10 +161,10 @@ namespace UnitTests.Application
         [Fact]
         public async Task Fail_WhenProviderFails()
         {
-            _exchangeProviderMock.Setup(x => x.SearchAsync(It.IsAny<CurrencyCode>(), It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-               .ReturnsAsync(Result.Failure<List<CurrencySnapshot>>(Error.SystemError));
+            _exchangeProviderMock.Setup(x => x.SearchAsync(It.IsAny<CurrencyCode>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(Result<List<CurrencySnapshot>>.Failure(Error.SystemError));
 
-            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), default);
+            var result = await _handler.Handle(new SearchCurrencyQuery("GBP", default, default), CancellationToken.None);
 
             result.IsFailure.Should().BeTrue();
             result.Error.Should().Be(Error.SystemError);

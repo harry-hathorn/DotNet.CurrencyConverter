@@ -1,67 +1,100 @@
-﻿using Application.Currencies.ConvertCurrency;
+using Application.Currencies.ConvertCurrency;
+using Application.Currencies.ConvertCurrency.Dtos;
 using Application.Currencies.FindLatestCurrency;
+using Application.Currencies.FindLatestCurrency.Dtos;
 using Application.Currencies.SearchCurrency;
+using Application.Currencies.SearchCurrency.Dtos;
 using Domain.Common;
-using Infrastructure.Extensions;
 using MediatR;
-using Presentation.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Currencies;
 
-public static class CurrencyEndpoints
+[ApiController]
+[Route("api/v1/currency")]
+[Authorize(Policy = "UserOnly")]
+public class CurrencyEndpoints(IMediator mediator) : ControllerBase
 {
-    private const string ServerErrorMessage = "Oops, something went wrong";
-
-    public static void MapCurrencyEndpoints(this IEndpointRouteBuilder app)
+    [HttpGet("convert/{baseCurrencyCode}/{targetCurrencyCode}/{amount}")]
+    [ProducesResponseType(typeof(ConvertCurrencyResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Convert(
+        string baseCurrencyCode,
+        string targetCurrencyCode,
+        decimal amount,
+        CancellationToken cancellationToken)
     {
-        app.MapGet("currency/latest/{currencyCode}", async (
-            string currencyCode,
-            ISender sender,
-            CancellationToken cancellationToken) =>
-        {
-            var result = await sender.Send(new FindLatestCurrencyQuery(currencyCode));
-            return HandleResult(result);
-        })
-        .RequireAuthorization(AuthorizationExtensions.UserRolePolicy)
-        .RequireRateLimiting(RateLimiterExtensions.UserRatePolicy);
+        var query = new ConvertCurrencyQuery(baseCurrencyCode, amount, targetCurrencyCode);
+        var result = await mediator.Send(query, cancellationToken);
 
-        app.MapGet("currency/search/{currencyCode}", async (
-            string currencyCode,
-            DateTime startDate,
-            DateTime endDate,
-            ISender sender,
-            CancellationToken cancellationToken) =>
+        if (result.IsFailure)
         {
-            var result = await sender.Send(new SearchCurrencyQuery(currencyCode, startDate, endDate));
-            return HandleResult(result);
-        })
-        .RequireAuthorization(AuthorizationExtensions.UserRolePolicy)
-        .RequireRateLimiting(RateLimiterExtensions.UserRatePolicy); 
+            if (result.Error.Code == ErrorCode.BadInput)
+            {
+                return BadRequest(result.Error);
+            }
+            return StatusCode(500, result.Error);
+        }
 
-        app.MapGet("currency/convert/{baseCurrency}/{targetCurrency}/{amount}", async (
-           string baseCurrency,
-           string targetCurrency,
-           decimal amount,
-           ISender sender,
-           CancellationToken cancellationToken) =>
-        {
-            var result = await sender.Send(new ConvertCurrencyQuery(baseCurrency, amount, targetCurrency));
-            return HandleResult(result);
-        })
-        .RequireAuthorization(AuthorizationExtensions.UserRolePolicy)
-        .RequireRateLimiting(RateLimiterExtensions.UserRatePolicy);
+        return Ok(result.Value);
     }
 
-    private static IResult HandleResult<T>(Result<T> result)
+    [HttpGet("latest/{currencyCode}")]
+    [ProducesResponseType(typeof(FindLatestCurrencyResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> FindLatest(
+        string currencyCode,
+        CancellationToken cancellationToken)
     {
-        if (result.IsFailure && result.Error.Code is ErrorCode.BadInput)
+        var query = new FindLatestCurrencyQuery(currencyCode);
+        var result = await mediator.Send(query, cancellationToken);
+
+        if (result.IsFailure)
         {
-            return Results.Problem(result.Error.Message, statusCode: 400);
+            if (result.Error.Code == ErrorCode.BadInput)
+            {
+                return BadRequest(result.Error);
+            }
+            return StatusCode(500, result.Error);
         }
-        else if (result.IsFailure)
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet("search/{currencyCode}")]
+    [ProducesResponseType(typeof(SearchCurrencyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Search(
+        string currencyCode,
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        CancellationToken cancellationToken)
+    {
+        var query = new SearchCurrencyQuery(currencyCode, startDate, endDate);
+        var result = await mediator.Send(query, cancellationToken);
+
+        if (result.IsFailure)
         {
-            return Results.Problem(ServerErrorMessage, statusCode: 500);
+            if (result.Error.Code == ErrorCode.BadInput)
+            {
+                return BadRequest(result.Error);
+            }
+            return StatusCode(500, result.Error);
         }
-        return Results.Ok(result.Value);
+
+        return Ok(result.Value);
     }
 }

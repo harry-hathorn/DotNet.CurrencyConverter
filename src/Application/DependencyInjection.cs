@@ -1,21 +1,23 @@
-﻿using Application.Pipelines;
-using Microsoft.Extensions.Configuration;
+using Application.Abstractions;
+using Application.Currencies.ConvertCurrency;
+using Application.Currencies.FindLatestCurrency;
+using Application.Currencies.SearchCurrency;
+using Application.Pipelines;
+using Domain.Currencies;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Application
+namespace Application;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        public static IServiceCollection InjectApplication(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        services.AddMediatR(cfg =>
         {
-            services.AddMediatR(configuration =>
-            {
-                configuration.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
-                configuration.AddOpenBehavior(typeof(QueryLoggingBehavior<,>));
-            });
-            return services;
-        }
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+            cfg.AddOpenBehavior(typeof(QueryLoggingBehavior<,>));
+        });
+
+        return services;
     }
 }

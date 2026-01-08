@@ -1,28 +1,7 @@
-﻿using System.Security.Claims;
-using System.Threading.RateLimiting;
+namespace Presentation.Extensions;
 
-namespace Presentation.Extensions
+public static class RateLimiterExtensions
 {
-    internal static class RateLimiterExtensions
-    {
-        internal const string UserRatePolicy = "user_rate_policy";
-        internal static IServiceCollection AddRateLimiting(this IServiceCollection services)
-        {
-            services.AddRateLimiter(options =>
-            {
-                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-                options.AddPolicy(UserRatePolicy, httpContext
-                    =>
-                    RateLimitPartition.GetFixedWindowLimiter(
-                        partitionKey: httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                      ?? "anonymous",
-                        factory: _ => new FixedWindowRateLimiterOptions
-                        {
-                            PermitLimit = 10,
-                            Window = TimeSpan.FromSeconds(10)
-                        }));
-            });
-            return services;
-        }
-    }
+    // Rate limiting is handled by AspNetCoreRateLimit package
+    // This extension is kept for potential future use
 }

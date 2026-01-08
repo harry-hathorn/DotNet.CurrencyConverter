@@ -1,8 +1,8 @@
-﻿using Application.Currencies.ConvertCurrency.Dtos;
+using Application.Currencies.ConvertCurrency.Dtos;
 using Domain.Common;
 using MediatR;
 
-namespace Application.Currencies.ConvertCurrency
-{
-    public record class ConvertCurrencyQuery(string BaseCurrencyCode, decimal BaseAmount, string TargetCurrencyCode) : IRequest<Result<ConvertCurrencyResultDto>>;
-}
+namespace Application.Currencies.ConvertCurrency;
+
+public record ConvertCurrencyQuery(string BaseCurrencyCode, decimal Amount, string TargetCurrencyCode)
+    : IRequest<Result<ConvertCurrencyResultDto>>;

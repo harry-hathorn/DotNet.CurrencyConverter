@@ -1,35 +1,34 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
+using System.Text;
 
-namespace Infrastructure.Caching
+namespace Infrastructure.Caching;
+
+public class CacheService(IDistributedCache distributedCache) : ICacheService
 {
-    internal class CacheService : ICacheService
+    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
-
-        private readonly IDistributedCache _cache;
-        public CacheService(IDistributedCache cache)
+        var bytes = await distributedCache.GetAsync(key, cancellationToken);
+        if (bytes is null)
         {
-            _cache = cache;
+            return null;
         }
 
-        public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken)
-               where T : class
-        {
-            string? cachedValue = await _cache.GetStringAsync(key, cancellationToken);
-            if (cachedValue == null)
-            {
-                return null;
-            }
-            T? value = JsonConvert.DeserializeObject<T>(cachedValue);
-            return value;
-        }
+        var json = Encoding.UTF8.GetString(bytes);
+        return JsonConvert.DeserializeObject<T>(json);
+    }
 
-        public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
-            where T : class
+    public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default) where T : class
+    {
+        var json = JsonConvert.SerializeObject(value);
+        var bytes = Encoding.UTF8.GetBytes(json);
+
+        var options = new DistributedCacheEntryOptions
         {
-            string cacheValue = JsonConvert.SerializeObject(value);
-            await _cache.SetStringAsync(key, cacheValue, cancellationToken);
-        }
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+        };
+
+        await distributedCache.SetAsync(key, bytes, options, cancellationToken);
     }
 }

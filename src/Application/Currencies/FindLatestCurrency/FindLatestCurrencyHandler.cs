@@ -1,61 +1,59 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.Currencies.FindLatestCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Currencies.FindLatestCurrency
+namespace Application.Currencies.FindLatestCurrency;
+
+public class FindLatestCurrencyHandler(
+    IExchangeProviderFactory exchangeProviderFactory,
+    ILogger<FindLatestCurrencyHandler> logger,
+    ICacheService cacheService,
+    ITimeProvider timeProvider)
+    : IRequestHandler<FindLatestCurrencyQuery, Result<FindLatestCurrencyResultDto>>
 {
-    public class FindLatestCurrencyHandler : IRequestHandler<FindLatestCurrencyQuery, Result<FindLatestCurrencyResultDto>>
+    public async Task<Result<FindLatestCurrencyResultDto>> Handle(FindLatestCurrencyQuery request, CancellationToken cancellationToken)
     {
-        private readonly IExchangeProviderFactory _exchangeFactory;
-        private readonly ILogger<FindLatestCurrencyHandler> _logger;
-        private readonly ICacheService _cacheService;
-        private readonly ITimeProvider _timeProvider;
-
-        public FindLatestCurrencyHandler(IExchangeProviderFactory exchangeFactory,
-            ILogger<FindLatestCurrencyHandler> logger,
-            ICacheService cacheService,
-            ITimeProvider timeProvider)
+        var currencyCodeResult = CurrencyCode.FromCode(request.CurrencyCode);
+        if (currencyCodeResult.IsFailure)
         {
-            _cacheService = cacheService;
-            _exchangeFactory = exchangeFactory;
-            _logger = logger;
-            _timeProvider = timeProvider;
+            return Result<FindLatestCurrencyResultDto>.Failure(currencyCodeResult.Error);
         }
 
-        public async Task<Result<FindLatestCurrencyResultDto>> Handle(FindLatestCurrencyQuery command, CancellationToken cancellationToken)
+        var today = timeProvider.UtcNow().Date;
+        var cacheKey = $"{today:yyyy-MM-dd}-{request.CurrencyCode}";
+        var cachedSnapshot = await cacheService.GetAsync<CurrencySnapshot>(cacheKey, cancellationToken);
+
+        CurrencySnapshot? snapshot;
+        if (cachedSnapshot is not null)
         {
-            var currencyCodeResult = CurrencyCode.FromCode(command.CurrencyCode);
-            if (currencyCodeResult.IsFailure)
-            {
-                return Result.Failure<FindLatestCurrencyResultDto>(currencyCodeResult.Error);
-            }
-            var currencyCode = currencyCodeResult.Value;
-            var exchangeProvider = _exchangeFactory.GetProvider(ExchangeProviderType.Frankfurter);
-            if (exchangeProvider == null)
-            {
-                _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
-                return Result.Failure<FindLatestCurrencyResultDto>(Error.SystemError);
-            }
-            var cacheKey = $"{_timeProvider.UtcNow().ToString("yyyy-MM-dd")}-{currencyCode.Value}";
-            var currencySnapShot = await _cacheService.GetAsync<CurrencySnapshot>(cacheKey, cancellationToken);
-            if (currencySnapShot == null)
-            {
-                var result = await exchangeProvider.FindLatestAsync(currencyCode);
-                if (result.IsFailure)
-                {
-                    return Result.Failure<FindLatestCurrencyResultDto>(result.Error);
-                }
-                currencySnapShot = result.Value;
-                await _cacheService.SetAsync(cacheKey, currencySnapShot, cancellationToken);
-            }
-            return new FindLatestCurrencyResultDto(currencySnapShot.Code.Value,
-                currencySnapShot.DateCaptured,
-                currencySnapShot.ExchangeRates
-                    .Select(x => new FindLatestCurrencyExchangeRateDto(x.Code.Value, x.Amount))
-                .ToList());
+            snapshot = cachedSnapshot;
         }
+        else
+        {
+            var provider = exchangeProviderFactory.GetProvider(ExchangeProviderType.Frankfurter);
+            if (provider is null)
+            {
+                return Result<FindLatestCurrencyResultDto>.Failure(Error.SystemError);
+            }
+
+            var snapshotResult = await provider.FindLatestAsync(currencyCodeResult.Value, cancellationToken);
+            if (snapshotResult.IsFailure)
+            {
+                return Result<FindLatestCurrencyResultDto>.Failure(snapshotResult.Error);
+            }
+
+            snapshot = snapshotResult.Value;
+            await cacheService.SetAsync(cacheKey, snapshot, cancellationToken);
+        }
+
+        var exchangeRates = snapshot.ExchangeRates
+            .Select(er => new FindLatestCurrencyExchangeRateDto(er.Code.Value, er.Amount))
+            .ToList();
+
+        return Result<FindLatestCurrencyResultDto>.Success(
+            new FindLatestCurrencyResultDto(snapshot.Code.Value, snapshot.DateCaptured, exchangeRates));
     }
 }

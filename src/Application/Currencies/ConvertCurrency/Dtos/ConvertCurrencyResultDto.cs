@@ -1,7 +1,3 @@
-﻿namespace Application.Currencies.ConvertCurrency.Dtos
-{
-    public record ConvertCurrencyResultDto(
-        DateTime DateCaptured,
-        string Code,
-        decimal Amount);
-}
+namespace Application.Currencies.ConvertCurrency.Dtos;
+
+public record ConvertCurrencyResultDto(DateTime DateCaptured, string Code, decimal Amount);

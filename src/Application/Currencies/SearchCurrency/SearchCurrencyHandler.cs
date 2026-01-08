@@ -1,59 +1,63 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.Currencies.SearchCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Currencies.SearchCurrency
+namespace Application.Currencies.SearchCurrency;
+
+public class SearchCurrencyHandler(
+    IExchangeProviderFactory exchangeProviderFactory,
+    ILogger<SearchCurrencyHandler> logger,
+    ICacheService cacheService)
+    : IRequestHandler<SearchCurrencyQuery, Result<SearchCurrencyDto>>
 {
-    public class SearchCurrencyHandler : IRequestHandler<SearchCurrencyQuery, Result<SearchCurrencyDto>>
+    public async Task<Result<SearchCurrencyDto>> Handle(SearchCurrencyQuery request, CancellationToken cancellationToken)
     {
-        private readonly IExchangeProviderFactory _exchangeFactory;
-        private readonly ILogger<SearchCurrencyHandler> _logger;
-        private readonly ICacheService _cacheService;
-
-        public SearchCurrencyHandler(IExchangeProviderFactory exchangeFactory,
-            ILogger<SearchCurrencyHandler> logger,
-            ICacheService cacheService)
+        var currencyCodeResult = CurrencyCode.FromCode(request.CurrencyCode);
+        if (currencyCodeResult.IsFailure)
         {
-            _cacheService = cacheService;
-            _exchangeFactory = exchangeFactory;
-            _logger = logger;
+            return Result<SearchCurrencyDto>.Failure(currencyCodeResult.Error);
         }
 
-        public async Task<Result<SearchCurrencyDto>> Handle(SearchCurrencyQuery command, CancellationToken cancellationToken)
+        var cacheKey = $"search-{request.CurrencyCode}";
+        var cachedSnapshots = await cacheService.GetAsync<List<CurrencySnapshot>>(cacheKey, cancellationToken);
+
+        List<CurrencySnapshot>? snapshots;
+        if (cachedSnapshots is not null)
         {
-            var currencyCodeResult = CurrencyCode.FromCode(command.CurrencyCode);
-            if (currencyCodeResult.IsFailure)
-            {
-                return Result.Failure<SearchCurrencyDto>(currencyCodeResult.Error);
-            }
-            var currencyCode = currencyCodeResult.Value;
-            var exchangeProvider = _exchangeFactory.GetProvider(ExchangeProviderType.Frankfurter);
-            if (exchangeProvider == null)
-            {
-                _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
-                return Result.Failure<SearchCurrencyDto>(Error.SystemError);
-            }
-            var cacheKey = $"search-{currencyCode.Value}";
-            var currencySnapShot = await _cacheService.GetAsync<List<CurrencySnapshot>>(cacheKey, cancellationToken);
-            if (currencySnapShot == null)
-            {
-                var result = await exchangeProvider.SearchAsync(currencyCode, command.StartDate, command.EndDate);
-                if (result.IsFailure)
-                {
-                    return Result.Failure<SearchCurrencyDto>(result.Error);
-                }
-                currencySnapShot = result.Value;
-                await _cacheService.SetAsync(cacheKey, currencySnapShot, cancellationToken);
-            }
-            return new SearchCurrencyDto(currencyCode.Value,
-                currencySnapShot.Select(x =>
-                    new SearchCurrencyDateCapturedDto(x.DateCaptured,
-                    x.ExchangeRates.Select(y => new SearchCurrencyAmountDto(y.Code.Value, y.Amount))
-                    .ToList()))
-                .ToList());
+            snapshots = cachedSnapshots;
         }
+        else
+        {
+            var provider = exchangeProviderFactory.GetProvider(ExchangeProviderType.Frankfurter);
+            if (provider is null)
+            {
+                return Result<SearchCurrencyDto>.Failure(Error.SystemError);
+            }
+
+            var snapshotsResult = await provider.SearchAsync(
+                currencyCodeResult.Value,
+                request.StartDate ?? DateTime.MinValue,
+                request.EndDate ?? DateTime.MinValue,
+                cancellationToken);
+
+            if (snapshotsResult.IsFailure)
+            {
+                return Result<SearchCurrencyDto>.Failure(snapshotsResult.Error);
+            }
+
+            snapshots = snapshotsResult.Value;
+            await cacheService.SetAsync(cacheKey, snapshots, cancellationToken);
+        }
+
+        var history = snapshots
+            .Select(s => new SearchCurrencyDateCapturedDto(
+                s.DateCaptured,
+                s.ExchangeRates.Select(er => new SearchCurrencyAmountDto(er.Code.Value, er.Amount)).ToList()))
+            .ToList();
+
+        return Result<SearchCurrencyDto>.Success(new SearchCurrencyDto(request.CurrencyCode, history));
     }
 }

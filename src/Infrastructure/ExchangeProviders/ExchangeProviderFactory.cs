@@ -1,18 +1,16 @@
-﻿using Domain.Currencies;
+using Domain.Currencies;
+using Infrastructure.ExchangeProviders.Frankfurter;
 
-namespace Infrastructure.ExchangeProviders
+namespace Infrastructure.ExchangeProviders;
+
+public class ExchangeProviderFactory(IEnumerable<IExchangeProvider> exchangeProviders) : IExchangeProviderFactory
 {
-    public class ExchangeProviderFactory : IExchangeProviderFactory
+    public IExchangeProvider? GetProvider(ExchangeProviderType type)
     {
-        private readonly IEnumerable<IExchangeProvider> _exchangeProviders;
-        public ExchangeProviderFactory(IEnumerable<IExchangeProvider> exchangeProviders)
+        return type switch
         {
-            _exchangeProviders = exchangeProviders;
-        }
-
-        public IExchangeProvider? GetProvider(ExchangeProviderType providerType)
-        {
-            return _exchangeProviders.FirstOrDefault(x => x.ProviderType == providerType);
-        }
+            ExchangeProviderType.Frankfurter => exchangeProviders.OfType<FrankfurterExchangeProvider>().FirstOrDefault(),
+            _ => null
+        };
     }
 }

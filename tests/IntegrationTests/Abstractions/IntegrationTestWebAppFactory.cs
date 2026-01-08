@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions;
+using AspNetCoreRateLimit;
 using Infrastructure.Utilities;
 using IntegrationTests.Utilities;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +42,15 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.AddSingleton<ITimeProvider, TestTimeProvider>();
             services.AddStackExchangeRedisCache(redisCacheOptions =>
                 redisCacheOptions.Configuration = _redisContainer.GetConnectionString());
+
+            // Configure rate limiting with very high limits for integration tests
+            services.Configure<IpRateLimitOptions>(options =>
+            {
+                options.EnableEndpointRateLimiting = true;
+                options.StackBlockedRequests = false;
+                options.HttpStatusCode = 429;
+                options.GeneralRules = [];
+            });
         });
     }
 
