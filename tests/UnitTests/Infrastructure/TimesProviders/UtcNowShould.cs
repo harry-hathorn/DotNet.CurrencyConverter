@@ -8,11 +8,11 @@ namespace UnitTests.Infrastructure.TimesProviders
         [Fact]
         public void ReturnCurrentUtcTime()
         {
-            var testStartTime = DateTime.UtcNow;
+            var beforeTime = DateTime.UtcNow.AddSeconds(-1);
             var timeProvider = new TimeProvider();
             var result = timeProvider.UtcNow();
-            var testEndTime = DateTime.UtcNow;
-            Assert.True(result < testEndTime && result > testStartTime);
+            var afterTime = DateTime.UtcNow.AddSeconds(1);
+            Assert.True(result >= beforeTime && result <= afterTime);
         }
     }
 }

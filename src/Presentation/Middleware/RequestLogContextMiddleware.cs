@@ -1,23 +1,12 @@
-﻿using Serilog.Context;
-
 namespace Presentation.Middleware;
 
-public class RequestLogContextMiddleware
+public class RequestLogContextMiddleware : IMiddleware
 {
-    private readonly RequestDelegate _next;
-
-    public RequestLogContextMiddleware(RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        _next = next;
+        var correlationId = context.TraceIdentifier;
+        context.Items["CorrelationId"] = correlationId;
+
+        await next(context);
     }
-
-    public Task InvokeAsync(HttpContext context)
-    {
-        using (LogContext.PushProperty("CorrelationId", context.TraceIdentifier))
-        {
-            return _next(context);
-        }
-    }
-
-
 }

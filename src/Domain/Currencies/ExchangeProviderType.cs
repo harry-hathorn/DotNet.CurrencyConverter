@@ -1,8 +1,6 @@
-﻿namespace Domain.Currencies
+namespace Domain.Currencies;
+
+public enum ExchangeProviderType
 {
-    public enum ExchangeProviderType
-    {
-        NotSet,
-        Frankfurter
-    }
+    Frankfurter
 }

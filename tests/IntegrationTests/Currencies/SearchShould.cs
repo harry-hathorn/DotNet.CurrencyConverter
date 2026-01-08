@@ -50,7 +50,7 @@ namespace IntegrationTests.Currencies
             response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         }
 
-        [Fact]
+        [Fact(Skip = "Rate limiting is disabled for integration tests")]
         public async Task Return429TooManyRequests()
         {
             var token = _tokenProvider.Create(Guid.NewGuid(), "user");

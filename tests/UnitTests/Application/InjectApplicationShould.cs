@@ -15,7 +15,7 @@ namespace UnitTests.Application
             var services = new ServiceCollection();
             var configuration = new ConfigurationBuilder().Build();
 
-            services.InjectApplication(configuration);
+            services.AddApplication();
             var serviceProvider = services.BuildServiceProvider();
 
             var mediator = serviceProvider.GetService<IMediator>();
@@ -31,7 +31,7 @@ namespace UnitTests.Application
         {
             var services = new ServiceCollection();
             var configuration = new ConfigurationBuilder().Build();
-            services.InjectApplication(configuration);
+            services.AddApplication();
             var serviceProvider = services.BuildServiceProvider();
             bool hasQueryLoggingBehavior = services.Any(sd => sd.ImplementationType?.FullName?.Contains(serviceName) == true);
             hasQueryLoggingBehavior.Should().BeTrue();

@@ -1,7 +1,7 @@
-﻿using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace IntegrationTests.Utilities
 {
@@ -24,9 +24,9 @@ namespace IntegrationTests.Utilities
                 Issuer = "currency.converter",
                 Audience = "users"
             };
-            var handler = new JsonWebTokenHandler();
-            string token = handler.CreateToken(tokenDescriptor);
-            return token;
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.CreateToken(tokenDescriptor);
+            return handler.WriteToken(token);
         }
     }
 }

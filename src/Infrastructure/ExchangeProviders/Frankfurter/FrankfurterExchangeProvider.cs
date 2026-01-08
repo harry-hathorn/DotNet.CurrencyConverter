@@ -1,75 +1,97 @@
-﻿using Domain.Common;
+using Domain.Common;
 using Domain.Currencies;
-using System.Net.Http.Json;
-using System.Reflection;
-using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Infrastructure.ExchangeProviders.Frankfurter.Models;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Polly;
+using Polly.Retry;
 
-namespace Infrastructure.ExchangeProviders.Frankfurter
+namespace Infrastructure.ExchangeProviders.Frankfurter;
+
+public class FrankfurterExchangeProvider(HttpClient httpClient, ILogger<FrankfurterExchangeProvider> logger) : IExchangeProvider
 {
-    public class FrankfurterExchangeProvider : IExchangeProvider
+    public ExchangeProviderType ProviderType => ExchangeProviderType.Frankfurter;
+
+    private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy = Policy
+        .HandleResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+    public async Task<Result<CurrencySnapshot>> FindLatestAsync(CurrencyCode currencyCode, CancellationToken cancellationToken = default)
     {
-        private readonly ILogger<FrankfurterExchangeProvider> _logger;
-        private readonly HttpClient _httpClient;
-        public FrankfurterExchangeProvider(HttpClient httpClient, ILogger<FrankfurterExchangeProvider> logger)
+        try
         {
-            _logger = logger;
-            _httpClient = httpClient;
-        }
+            var response = await _retryPolicy.ExecuteAsync(async () =>
+                await httpClient.GetAsync($"v1/latest?base={currencyCode.Value}", cancellationToken));
 
-        public ExchangeProviderType ProviderType { get; } = ExchangeProviderType.Frankfurter;
-
-        public async Task<Result<CurrencySnapshot>> FindLatestAsync(CurrencyCode currencyCode)
-        {
-            try
+            if (!response.IsSuccessStatusCode)
             {
-                var response = await _httpClient.GetFromJsonAsync<FrankfurterLatestResponse>($"v1/latest?base={currencyCode.Value}");
-
-                List<(string Code, decimal Amount)> expectedRates = response.Rates.GetType()
-                  .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                  .Where(prop => prop.GetValue(response.Rates) != null)
-                  .Select(prop => (Code: prop.Name, Amount: Convert.ToDecimal(prop.GetValue(response.Rates))))
-                  .ToList();
-
-                var result = CurrencySnapshot.Create(response.Base,
-                    response.Date,
-                    expectedRates);
-
-                return result.Value;
+                return Result<CurrencySnapshot>.Failure(Error.SystemError);
             }
-            catch (JsonException exception)
-            {
-                _logger.LogError("Franfurter returned an invalid json payload, {error}", exception.Message);
-                return Result.Failure<CurrencySnapshot>(Error.SystemError);
-            }
-        }
 
-        public async Task<Result<List<CurrencySnapshot>>> SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate)
-        {
-            try
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            var frankfurterResponse = JsonConvert.DeserializeObject<FrankfurterLatestResponse>(content);
+
+            if (frankfurterResponse is null)
             {
-                var response = await _httpClient.GetFromJsonAsync<FrankfurterSearchResponse>($"v1/{startDate.ToString("yyyy-MM-dd")}..{endDate.ToString("yyyy-MM-dd")}?base={currencyCode.Value}");
-                List<CurrencySnapshot> result = new List<CurrencySnapshot>();
-                foreach (var rate in response.Rates)
+                return Result<CurrencySnapshot>.Failure(Error.SystemError);
+            }
+
+            var rates = new List<(string Code, decimal Amount)>();
+            var properties = frankfurterResponse.Rates.GetType().GetProperties();
+            foreach (var prop in properties)
+            {
+                var value = prop.GetValue(frankfurterResponse.Rates);
+                if (value is decimal decimalValue)
                 {
-                    var snapShotResult =
-                    CurrencySnapshot.Create(
-                     currencyCode.Value,
-                     rate.Key,
-                     rate.Value.Select(r => (r.Key, r.Value)).ToList());
-                    if (snapShotResult.IsSuccess)
-                    {
-                        result.Add(snapShotResult.Value);
-                    }
+                    rates.Add((prop.Name, decimalValue));
                 }
-                return result;
             }
-            catch (JsonException exception)
+
+            return CurrencySnapshot.Create(frankfurterResponse.Base, frankfurterResponse.Date, rates);
+        }
+        catch (Exception)
+        {
+            return Result<CurrencySnapshot>.Failure(Error.SystemError);
+        }
+    }
+
+    public async Task<Result<List<CurrencySnapshot>>> SearchAsync(CurrencyCode currencyCode, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var url = $"v1/{startDate:yyyy-MM-dd}..{endDate:yyyy-MM-dd}?base={currencyCode.Value}";
+            var response = await _retryPolicy.ExecuteAsync(async () =>
+                await httpClient.GetAsync(url, cancellationToken));
+
+            if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Franfurter returned an invalid json payload, {error}", exception.Message);
-                return Result.Failure<List<CurrencySnapshot>>(Error.SystemError);
+                return Result<List<CurrencySnapshot>>.Failure(Error.SystemError);
             }
+
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            var frankfurterResponse = JsonConvert.DeserializeObject<FrankfurterSearchResponse>(content);
+
+            if (frankfurterResponse is null)
+            {
+                return Result<List<CurrencySnapshot>>.Failure(Error.SystemError);
+            }
+
+            var snapshots = new List<CurrencySnapshot>();
+            foreach (var (date, rates) in frankfurterResponse.Rates)
+            {
+                var exchangeRates = rates.Select(r => (r.Key, r.Value)).ToList();
+                var result = CurrencySnapshot.Create(frankfurterResponse.Base, date, exchangeRates);
+                if (result.IsSuccess)
+                {
+                    snapshots.Add(result.Value);
+                }
+            }
+
+            return Result<List<CurrencySnapshot>>.Success(snapshots);
+        }
+        catch (Exception)
+        {
+            return Result<List<CurrencySnapshot>>.Failure(Error.SystemError);
         }
     }
 }

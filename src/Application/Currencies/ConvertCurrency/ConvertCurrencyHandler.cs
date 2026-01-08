@@ -1,74 +1,72 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.Currencies.ConvertCurrency.Dtos;
 using Domain.Common;
 using Domain.Currencies;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Currencies.ConvertCurrency
+namespace Application.Currencies.ConvertCurrency;
+
+public class ConvertCurrencyHandler(
+    IExchangeProviderFactory exchangeProviderFactory,
+    ILogger<ConvertCurrencyHandler> logger,
+    ICacheService cacheService)
+    : IRequestHandler<ConvertCurrencyQuery, Result<ConvertCurrencyResultDto>>
 {
-    public class ConvertCurrencyHandler : IRequestHandler<ConvertCurrencyQuery, Result<ConvertCurrencyResultDto>>
+    public async Task<Result<ConvertCurrencyResultDto>> Handle(ConvertCurrencyQuery request, CancellationToken cancellationToken)
     {
-        private readonly IExchangeProviderFactory _exchangeFactory;
-        private readonly ILogger<ConvertCurrencyHandler> _logger;
-        private readonly ICacheService _cacheService;
-
-        public ConvertCurrencyHandler(IExchangeProviderFactory exchangeFactory,
-            ILogger<ConvertCurrencyHandler> logger,
-            ICacheService cacheService)
+        var baseCurrencyResult = CurrencyCode.FromCode(request.BaseCurrencyCode);
+        if (baseCurrencyResult.IsFailure)
         {
-            _cacheService = cacheService;
-            _exchangeFactory = exchangeFactory;
-            _logger = logger;
+            return Result<ConvertCurrencyResultDto>.Failure(baseCurrencyResult.Error);
         }
 
-        public async Task<Result<ConvertCurrencyResultDto>> Handle(ConvertCurrencyQuery command, CancellationToken cancellationToken)
+        var targetCurrencyResult = CurrencyCode.FromCode(request.TargetCurrencyCode);
+        if (targetCurrencyResult.IsFailure)
         {
-            var targetCurrencyCodeResult = CurrencyCode.FromCode(command.TargetCurrencyCode);
-            if (targetCurrencyCodeResult.IsFailure)
-            {
-                return Result.Failure<ConvertCurrencyResultDto>(targetCurrencyCodeResult.Error);
-            }
-            var targetCode = targetCurrencyCodeResult.Value;
-
-            if (!CurrencySnapshot.IsLegalConversion(targetCode))
-            {
-                return Result.Failure<ConvertCurrencyResultDto>(new Error(ErrorCode.BadInput, $"{command.TargetCurrencyCode} conversion is not allowed."));
-            }
-
-            var baseCurrencyCodeResult = CurrencyCode.FromCode(command.BaseCurrencyCode);
-            if (baseCurrencyCodeResult.IsFailure)
-            {
-                return Result.Failure<ConvertCurrencyResultDto>(baseCurrencyCodeResult.Error);
-            }
-            var baseCode = baseCurrencyCodeResult.Value;
-
-            var exchangeProvider = _exchangeFactory.GetProvider(ExchangeProviderType.Frankfurter);
-            if (exchangeProvider == null)
-            {
-                _logger.LogError("Could not find an exchange provider, {requestedProvider}", ExchangeProviderType.Frankfurter);
-                return Result.Failure<ConvertCurrencyResultDto>(Error.SystemError);
-            }
-            var cacheKey = $"latest-{baseCode.Value}";
-            var currencySnapShot = await _cacheService.GetAsync<CurrencySnapshot>(cacheKey, cancellationToken);
-            if (currencySnapShot == null)
-            {
-                var result = await exchangeProvider.FindLatestAsync(baseCode);
-                if (result.IsFailure)
-                {
-                    return Result.Failure<ConvertCurrencyResultDto>(result.Error);
-                }
-                currencySnapShot = result.Value;
-                await _cacheService.SetAsync(cacheKey, currencySnapShot, cancellationToken);
-            }
-            var conversionResult = currencySnapShot.Convert(command.BaseAmount, targetCode);
-            if (conversionResult.IsFailure)
-            {
-                return Result.Failure<ConvertCurrencyResultDto>(conversionResult.Error);
-            }
-            return new ConvertCurrencyResultDto(currencySnapShot.DateCaptured,
-                conversionResult.Value.Code.Value,
-                conversionResult.Value.Amount);
+            return Result<ConvertCurrencyResultDto>.Failure(targetCurrencyResult.Error);
         }
+
+        if (!CurrencySnapshot.IsLegalConversion(targetCurrencyResult.Value))
+        {
+            return Result<ConvertCurrencyResultDto>.Failure(
+                new Error(ErrorCode.BadInput, $"{request.TargetCurrencyCode} conversion is not allowed."));
+        }
+
+        var cacheKey = $"latest-{request.BaseCurrencyCode}";
+        var cachedSnapshot = await cacheService.GetAsync<CurrencySnapshot>(cacheKey, cancellationToken);
+
+        CurrencySnapshot? snapshot;
+        if (cachedSnapshot is not null)
+        {
+            snapshot = cachedSnapshot;
+        }
+        else
+        {
+            var provider = exchangeProviderFactory.GetProvider(ExchangeProviderType.Frankfurter);
+            if (provider is null)
+            {
+                return Result<ConvertCurrencyResultDto>.Failure(Error.SystemError);
+            }
+
+            var snapshotResult = await provider.FindLatestAsync(baseCurrencyResult.Value, cancellationToken);
+            if (snapshotResult.IsFailure)
+            {
+                return Result<ConvertCurrencyResultDto>.Failure(snapshotResult.Error);
+            }
+
+            snapshot = snapshotResult.Value;
+            await cacheService.SetAsync(cacheKey, snapshot, cancellationToken);
+        }
+
+        var convertResult = snapshot.Convert(request.Amount, targetCurrencyResult.Value);
+        if (convertResult.IsFailure)
+        {
+            return Result<ConvertCurrencyResultDto>.Failure(convertResult.Error);
+        }
+
+        var money = convertResult.Value;
+        return Result<ConvertCurrencyResultDto>.Success(
+            new ConvertCurrencyResultDto(snapshot.DateCaptured, money.CurrencyCode.Value, money.Amount));
     }
 }

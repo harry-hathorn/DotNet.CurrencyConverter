@@ -35,8 +35,8 @@ namespace UnitTests.Application
             };
             _snapShot = CurrencySnapshot.Create("USD", new DateTime(2001, 12, 12), currencies);
 
-            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>()))
-                .ReturnsAsync(_snapShot);
+            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>(), It.IsAny<CancellationToken>()))
+                .Returns((CurrencyCode code, CancellationToken ct) => Task.FromResult(_snapShot));
 
             _handler = new FindLatestCurrencyHandler(_factoryMock.Object,
                 new Mock<ILogger<FindLatestCurrencyHandler>>().Object,
@@ -48,22 +48,22 @@ namespace UnitTests.Application
         {
             _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"2001-02-23-GBP", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_snapShot.Value);
-            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
-            _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp), Times.Never);
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
+            _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp, It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task CallCache()
         {
-            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
             _cacheServiceMock.Verify(x => x.GetAsync<CurrencySnapshot>($"2001-02-23-GBP", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task GetProviderFromFactory()
         {
-            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
-            _factoryMock.Verify(x => x.GetProvider(ExchangeProviderType.Frankfurter), Times.Once);
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
+            _factoryMock.Verify(x => x.GetProvider(It.IsAny<ExchangeProviderType>()), Times.Once);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace UnitTests.Application
             _factoryMock.Setup(x => x.GetProvider(It.IsAny<ExchangeProviderType>()))
               .Returns(() => null);
 
-            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
             result.IsFailure.Should().BeTrue();
             result.Error.Should().Be(Error.SystemError);
         }
@@ -80,7 +80,7 @@ namespace UnitTests.Application
         [Fact]
         public async Task Fail_IfInvalidCurrency()
         {
-            var result = await _handler.Handle(new FindLatestCurrencyQuery("INVALID"), default);
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("INVALID"), CancellationToken.None);
             result.Error.Code.Should().Be(ErrorCode.BadInput);
             result.Error.Message.Should().Be("The currency code is invalid");
         }
@@ -88,22 +88,22 @@ namespace UnitTests.Application
         [Fact]
         public async Task CallProvider()
         {
-            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
-            _factoryMock.Verify(x => x.GetProvider(ExchangeProviderType.Frankfurter), Times.Once);
-            _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp), Times.Once);
+            await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
+            _factoryMock.Verify(x => x.GetProvider(It.IsAny<ExchangeProviderType>()), Times.Once);
+            _exchangeProviderMock.Verify(x => x.FindLatestAsync(CurrencyCode.Gbp, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task CallSetCache()
         {
-            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
             _cacheServiceMock.Verify(x => x.SetAsync($"2001-02-23-GBP", _snapShot.Value, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task MapToDto()
         {
-            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
             dto.Code.Should().Be("USD");
@@ -128,7 +128,7 @@ namespace UnitTests.Application
             _cacheServiceMock.Setup(x => x.GetAsync<CurrencySnapshot>($"2001-02-23-GBP", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(snapShot.Value);
 
-            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
             var dto = result.Value;
             result.IsSuccess.Should().BeTrue();
             dto.Code.Should().Be("USD");
@@ -144,10 +144,10 @@ namespace UnitTests.Application
         [Fact]
         public async Task Fail_WhenProviderFails()
         {
-            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>()))
-               .ReturnsAsync(Result.Failure<CurrencySnapshot>(Error.SystemError));
+            _exchangeProviderMock.Setup(x => x.FindLatestAsync(It.IsAny<CurrencyCode>(), It.IsAny<CancellationToken>()))
+               .Returns((CurrencyCode code, CancellationToken ct) => Task.FromResult(Result<CurrencySnapshot>.Failure(Error.SystemError)));
 
-            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), default);
+            var result = await _handler.Handle(new FindLatestCurrencyQuery("GBP"), CancellationToken.None);
 
             result.IsFailure.Should().BeTrue();
             result.Error.Should().Be(Error.SystemError);

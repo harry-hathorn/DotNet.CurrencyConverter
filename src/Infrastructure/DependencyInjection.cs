@@ -1,60 +1,39 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Domain.Currencies;
 using Infrastructure.Caching;
 using Infrastructure.ExchangeProviders;
 using Infrastructure.ExchangeProviders.Frankfurter;
 using Infrastructure.Extensions;
-using Microsoft.Extensions.Configuration;
+using Infrastructure.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http.Resilience;
-using Polly;
-using TimeProvider = Infrastructure.Utilities.TimeProvider;
+using Microsoft.Extensions.Configuration;
+using CustomTimeProvider = Infrastructure.Utilities.TimeProvider;
 
+namespace Infrastructure;
 
-namespace Infrastructure
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection InjectInfrastructure(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
-            services.AddCaching(configuration);
-            services.AddCurrencyProviders(configuration);
-            services.AddUtilities();
-            services.AddAuthentication(configuration);
-            return services;
-        }
+        services.AddSingleton<ITimeProvider, CustomTimeProvider>();
+        services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<IExchangeProviderFactory, ExchangeProviderFactory>();
 
-        private static void AddCaching(this IServiceCollection services, IConfiguration configuration)
+        services.AddHttpClient<FrankfurterExchangeProvider>(client =>
         {
-            services.AddStackExchangeRedisCache(options => options.Configuration = configuration.GetConnectionString("Cache"));
-            services.AddSingleton<ICacheService, CacheService>();
-        }
+            client.BaseAddress = new Uri(configuration["ProviderUrls:FrankfurterBaseUrl"] ?? "https://api.frankfurter.dev/");
+        });
 
-        public static IServiceCollection AddCurrencyProviders(this IServiceCollection services, IConfiguration configuration)
+        services.AddSingleton<IExchangeProvider>(sp =>
         {
-            var baseUrl = configuration["ProviderUrls:FrankfurterBaseUrl"];
-            services.AddHttpClient<IExchangeProvider, FrankfurterExchangeProvider>(client =>
-            {
-                client.BaseAddress = new Uri(baseUrl);
-            })
-            .AddStandardResilienceHandler().Configure(x =>
-            {
-                x.Retry.MaxRetryAttempts = 3;
-                x.Retry.Delay = TimeSpan.FromSeconds(1);
-                x.Retry.UseJitter = true;
-                x.Retry.BackoffType = DelayBackoffType.Exponential;
-                x.CircuitBreaker.MinimumThroughput = 10;
-                x.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
-            });
-            services.AddTransient<IExchangeProviderFactory, ExchangeProviderFactory>();
-            return services;
-        }
-        public static IServiceCollection AddUtilities(this IServiceCollection services)
-        {
-            services.AddSingleton<ITimeProvider, TimeProvider>();
-            return services;
-        }
+            var httpClientFactory = sp.GetRequiredService<System.Net.Http.IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient(nameof(FrankfurterExchangeProvider));
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FrankfurterExchangeProvider>>();
+            return new FrankfurterExchangeProvider(httpClient, logger);
+        });
+
+        services.AddCustomAuthorization();
+
+        return services;
     }
 }

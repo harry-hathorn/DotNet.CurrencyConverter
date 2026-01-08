@@ -25,7 +25,7 @@ namespace UnitTests.Infrastructure.CacheServices
         public async Task CallSet()
         {
             var bytes = Encoding.UTF8.GetBytes(@"{""Hello"":""Hello"",""Things"":[1,2,3]}");
-            await _cacheService.SetAsync("key", new MyTestItem("Hello", new List<int>() { 1, 2, 3 }), default);
+            await _cacheService.SetAsync("key", new MyTestItem("Hello", new List<int>() { 1, 2, 3 }), CancellationToken.None);
             _distributedCacheMock.Verify(x => x.SetAsync("key", bytes, It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }

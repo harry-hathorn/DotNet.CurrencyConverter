@@ -27,14 +27,14 @@ namespace UnitTests.Infrastructure.CacheServices
         {
             _distributedCacheMock.Setup(x => x.GetAsync("key", It.IsAny<CancellationToken>()))
                .ReturnsAsync(() => null);
-            var result = await _cacheService.GetAsync<MyTestItem>("key", default);
+            var result = await _cacheService.GetAsync<MyTestItem>("key", CancellationToken.None);
             result.Should().BeNull();
         }
 
         [Fact]
         public async Task CallDistributedCache()
         {
-            await _cacheService.GetAsync<MyTestItem>("key", default);
+            await _cacheService.GetAsync<MyTestItem>("key", CancellationToken.None);
             _distributedCacheMock.Verify(x => x.GetAsync("key", It.IsAny<CancellationToken>()), Times.Once);
         }
         private record MyTestItem(string Hello, List<int> Things);
@@ -42,7 +42,7 @@ namespace UnitTests.Infrastructure.CacheServices
         [Fact]
         public async Task DeserializeJson()
         {
-            var result = await _cacheService.GetAsync<MyTestItem>("key", default);
+            var result = await _cacheService.GetAsync<MyTestItem>("key", CancellationToken.None);
             result.Hello.Should().Be("Hello");
             result.Things.Should().BeEquivalentTo(new List<int> { 1, 2, 3 });
         }
@@ -56,7 +56,7 @@ namespace UnitTests.Infrastructure.CacheServices
             var snapShotJson = JsonConvert.SerializeObject(snapShot);
             _distributedCacheMock.Setup(x => x.GetAsync("key", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Encoding.UTF8.GetBytes(snapShotJson));
-            var result = await _cacheService.GetAsync<CurrencySnapshot>("key", default);
+            var result = await _cacheService.GetAsync<CurrencySnapshot>("key", CancellationToken.None);
             result.Should().BeEquivalentTo(snapShot);
         }
 
@@ -77,7 +77,7 @@ namespace UnitTests.Infrastructure.CacheServices
             var snapShotJson = JsonConvert.SerializeObject(list);
             _distributedCacheMock.Setup(x => x.GetAsync("key", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Encoding.UTF8.GetBytes(snapShotJson));
-            var result = await _cacheService.GetAsync<List<CurrencySnapshot>>("key", default);
+            var result = await _cacheService.GetAsync<List<CurrencySnapshot>>("key", CancellationToken.None);
             result.Should().BeEquivalentTo(list);
         }
     }

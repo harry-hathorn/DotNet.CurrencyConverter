@@ -1,4 +1,6 @@
-﻿namespace Domain.Currencies
+namespace Domain.Currencies;
+
+public record Money(decimal Amount, CurrencyCode CurrencyCode)
 {
-    public record Money(CurrencyCode Code, decimal Amount);
+    public static Money Zero(CurrencyCode currencyCode) => new(0, currencyCode);
 }

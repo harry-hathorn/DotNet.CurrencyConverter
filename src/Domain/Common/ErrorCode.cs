@@ -1,10 +1,8 @@
-﻿namespace Domain.Common
+namespace Domain.Common;
+
+public enum ErrorCode
 {
-    public enum ErrorCode
-    {
-        NoError,
-        ServerError,
-        BadInput,
-        NotFound
-    }
+    BadInput,
+    NotFound,
+    SystemError
 }

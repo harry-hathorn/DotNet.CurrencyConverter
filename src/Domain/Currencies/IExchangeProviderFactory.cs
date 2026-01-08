@@ -1,7 +1,6 @@
-﻿namespace Domain.Currencies
+namespace Domain.Currencies;
+
+public interface IExchangeProviderFactory
 {
-    public interface IExchangeProviderFactory
-    {
-        IExchangeProvider? GetProvider(ExchangeProviderType providerType);
-    }
+    IExchangeProvider? GetProvider(ExchangeProviderType type);
 }
